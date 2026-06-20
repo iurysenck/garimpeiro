@@ -206,6 +206,9 @@ webapp_url: ""
 sync_token: ""
 painel_url: ""
 
+# Repo GitHub (usuario/repo) p/ "Reportar problema" no painel/Telegram. Vazio = sem link.
+github_repo: ""
+
 # Horários do 'schedule' (HH:MM, vírgula). Padrão 2x/dia.
 run_at: "08:00,20:00"
 

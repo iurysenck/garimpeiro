@@ -152,7 +152,28 @@ def _chunk(blocos: list[str]) -> list[str]:
     return partes
 
 
-def enviar_alerta_erros(tracker: ErrorTracker, log, gerado_em: str = "") -> None:
+def issue_url(repo: str, tracker: "ErrorTracker") -> str:
+    """Monta um link de 'novo issue' no GitHub já preenchido com os erros da rodada."""
+    import urllib.parse
+
+    repo = (repo or "").strip().strip("/")
+    if not repo:
+        return ""
+    cats = sorted({e.categoria for e in tracker.entries})
+    titulo = f"[erro] {', '.join(cats)[:60]}"
+    linhas = ["Erros da rodada (gerado automaticamente):", ""]
+    for e in tracker.entries[:20]:
+        linhas.append(f"- **{e.categoria}** ({e.nivel}) {e.fonte}: {e.msg[:160]}")
+        linhas.append(f"  - sugestão: {e.acao}")
+    linhas += ["", "Ambiente: (preencha SO/Python se possível)"]
+    corpo = "\n".join(linhas)
+    q = urllib.parse.urlencode({"labels": "bug", "title": titulo, "body": corpo})
+    return f"https://github.com/{repo}/issues/new?{q}"
+
+
+def enviar_alerta_erros(
+    tracker: ErrorTracker, log, gerado_em: str = "", github_repo: str = ""
+) -> None:
     """Manda no Telegram um resumo dos erros/avisos da rodada, agrupado por categoria."""
     if not tracker.has():
         return
@@ -192,6 +213,9 @@ def enviar_alerta_erros(tracker: ErrorTracker, log, gerado_em: str = "") -> None
             f"🔧 <i>{e(g['acao'])}</i>\n"
         )
     blocos.append("\n📄 Detalhes e traceback em <code>errors.log</code>.")
+    _iu = issue_url(github_repo, tracker)
+    if _iu:
+        blocos.append(f'\n🐛 <a href="{e(_iu)}">Reportar no GitHub (1 clique)</a>')
 
     url = _TG_API.format(token=token)
     for parte in _chunk(blocos):

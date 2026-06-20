@@ -433,6 +433,12 @@ _CSS = """
   body.lighttheme .notabody{background:rgba(0,0,0,.04)}
   body.lighttheme .topbar{background:rgba(246,246,248,.88)}
   body.lighttheme .glow,body.lighttheme .glow2{opacity:.06}
+  .repofoot{max-width:1180px;margin:10px auto 40px;padding:0 16px;display:flex;gap:18px;
+    flex-wrap:wrap;justify-content:center}
+  .repofoot a{color:var(--muted);font-size:.82rem;text-decoration:none;display:inline-flex;
+    align-items:center;gap:6px}
+  .repofoot a:hover{color:var(--accent)}
+  .repofoot svg.lucide{width:14px;height:14px}
 """
 
 
@@ -688,6 +694,8 @@ def gerar_html(
     webapp_url: str = "",
     sync_token: str = "",
     brand: str = "Vagas",
+    github_repo: str = "",
+    plugin_html: str = "",
 ) -> None:
     """Escreve o painel HTML (abas, ícones Lucide, arquivar/aplicados/notas)."""
     new_uids = new_uids or set()
@@ -709,6 +717,17 @@ def gerar_html(
             for slug, ico, rot in AREA_CHIPS
         )
     )
+    repo = (github_repo or "").strip().strip("/")
+    if repo:
+        report_link = (
+            '<footer class="repofoot">'
+            f'<a href="https://github.com/{html.escape(repo)}/issues/new?labels=bug" '
+            f'target="_blank" rel="noopener">{_ic("bug")} Reportar um problema</a>'
+            f'<a href="https://github.com/{html.escape(repo)}" target="_blank" rel="noopener">'
+            f'{_ic("github")} Contribuir / código</a></footer>'
+        )
+    else:
+        report_link = ""
     doc = f"""<!doctype html>
 <html lang="pt-br"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -788,7 +807,9 @@ document.documentElement.classList.add('prelight');}}}}catch(e){{}}}})();</scrip
       <div class="notabar"><button id="notrash" class="iconbtn">{_ic("trash-2")} Lixeira <span class="n">0</span></button></div>
       <div id="notaslist" class="grid"></div>
     </section>
+    {plugin_html}
   </main>
+  {report_link}
   <script>window.WEBAPP_URL={json.dumps(webapp_url)};window.SYNC_TOKEN={json.dumps(sync_token)};window.BUILD={json.dumps(gerado_em)};</script>
   <script>{_JS}</script>
 </body></html>"""

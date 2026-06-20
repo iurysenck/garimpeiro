@@ -1,7 +1,10 @@
 # Segredos e dados pessoais — NUNCA commitar
+# (comentários precisam ficar em linha própria — git não aceita comentário inline)
 .env
+.env.*
 perfil.md
-config.yaml          # gerado pelo wizard; tem suas preferências (use config.example.yaml)
+# gerado pelo wizard; tem suas preferências (use config.example.yaml como base)
+config.yaml
 
 # Sessão logada do Chrome (nodriver) — contém seus logins
 .nddata/

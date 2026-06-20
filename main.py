@@ -26,6 +26,7 @@ import matcher
 import report
 import tracker
 from errors import ErrorTracker, enviar_alerta_erros
+from plugin_loader import load_plugins
 from sources import (
     Job,
     fetch_gupy,
@@ -179,6 +180,19 @@ def coletar(cfg: dict, log) -> tuple[list[Job], dict[str, int]]:
         )
         counts["Jobbol"] = len(r)
         jobs += r
+
+    # Fontes via plugin (pasta plugins/). Cada plugin que dá erro é só pulado.
+    psources, _ = load_plugins(BASE, log)
+    for meta, fetch in psources:
+        nome = meta.get("name", "plugin")
+        log(f"Fonte (plugin): {nome}")
+        try:
+            r = fetch(cfg, log) or []
+        except Exception as exc:  # noqa: BLE001
+            log(f"  [Plugin {nome}] falha: {exc}")
+            r = []
+        counts[nome] = len(r)
+        jobs += r
     return jobs, counts
 
 
@@ -219,11 +233,13 @@ def main() -> int:
     err_tracker = ErrorTracker()
     log = Logger(LOG_PATH, ERR_PATH, err_tracker)
     inicio = datetime.datetime.now()
+    github_repo = ""
     log("=" * 60)
     log("Iniciando rodada do garimpeiro")
 
     try:
         cfg = load_config()
+        github_repo = cfg.get("github_repo", "")
         perfil = (BASE / "perfil.md").read_text(encoding="utf-8")
         store = Store(str(DB_PATH))
 
@@ -292,6 +308,15 @@ def main() -> int:
         applied_uids = tracker.buscar_aplicadas(cfg.get("applied_csv_url", ""), log)
         bot_user = report.obter_username_bot(log)
 
+        # Painéis via plugin (seções extras no app)
+        _, ppanels = load_plugins(BASE, log)
+        plugin_html = ""
+        for meta, panel_html in ppanels:
+            try:
+                plugin_html += panel_html(cfg) or ""
+            except Exception as exc:  # noqa: BLE001
+                log(f"  [Plugin {meta.get('name','?')}] painel falhou: {exc}", level="WARN")
+
         if out.get("html"):
             html_path = BASE / out.get("html_path", "public/index.html")
             html_path.parent.mkdir(parents=True, exist_ok=True)
@@ -306,6 +331,8 @@ def main() -> int:
                 cfg.get("webapp_url", ""),
                 cfg.get("sync_token", ""),
                 cfg.get("brand", "Vagas"),
+                cfg.get("github_repo", ""),
+                plugin_html,
             )
             (html_path.parent / "version.json").write_text(
                 json.dumps(
@@ -347,7 +374,9 @@ def main() -> int:
     finally:
         # Alerta no Telegram se algo deu errado (erro fatal, fonte caída, etc.)
         try:
-            enviar_alerta_erros(err_tracker, log, f"{inicio:%d/%m/%Y %H:%M}")
+            enviar_alerta_erros(
+                err_tracker, log, f"{inicio:%d/%m/%Y %H:%M}", github_repo
+            )
         except Exception as exc:  # noqa: BLE001
             log(f"  [Telegram] alerta de erro falhou: {exc}", level="WARN")
         log.close()

@@ -78,6 +78,34 @@ Quando uma vier 0 várias vezes, é sinal de sessão expirada — rode o login d
 
 ---
 
+## Onde rodar (cross-platform + grátis, sem PC)
+**Cross-platform:** sim — Python puro, roda Windows / macOS / Linux. Só o atalho e as
+fontes logadas (precisam de Chrome) variam por SO.
+
+| Onde | Funciona? | Notas |
+|------|-----------|-------|
+| Seu PC | ✅ tudo | inclui fontes logadas |
+| **Raspberry Pi Zero 2 W** | ✅ públicas | leve, 24/7; logadas NÃO (Chromium não cabe em 512MB) |
+| Raspberry Pi 4/5 (2GB+) | ✅ tudo | logadas OK |
+| **GitHub Actions** (grátis) | ✅ públicas | cron sem hardware — veja `.github/workflows/garimpo.yml` |
+| **Oracle Cloud Always Free** (VM ARM) | ✅ tudo | grátis pra sempre, roda Chromium |
+| ESP32 / microcontrolador | ❌ | sem SO/Python/Chrome — não roda |
+
+> "Independente do meu PC, grátis": **GitHub Actions** (público) ou **Oracle Always Free**
+> (público + logado). NotebookLM **não** serve — é IA de leitura de documentos, não roda código.
+
+## Plugins (estenda sem tocar no core)
+Coloque um `.py` em `plugins/` — é descoberto sozinho. Dois tipos:
+- **Fonte de vagas:** copie `plugins/_template_fonte.py` → retorna `list[Job]`.
+- **Seção no painel:** veja `plugins/exemplo_painel.py` → retorna HTML.
+
+Um plugin com erro é só pulado (não quebra a rodada). Dedup/IA/painel vêm de graça.
+
+## Contribuir / reportar erro
+- **Reportar problema:** rodapé do painel ou botão no alerta do Telegram (já preenche o issue).
+- **Contribuir:** veja `CONTRIBUTING.md` (rodar local, criar plugin, abrir PR). Templates de
+  issue/PR já vêm prontos.
+
 ## Segurança
 - Segredos só no `.env` (gitignored). `config.yaml` e `perfil.md` também são gitignored.
 - Modo local = privado por construção. Modo nuvem = **sempre** atrás de login (Access).

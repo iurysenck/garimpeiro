@@ -1,0 +1,55 @@
+# Roda o garimpeiro DE GRAÇA no GitHub Actions (sem PC ligado), 2x/dia.
+# Só fontes públicas (Gupy/JobSpy/Trampos) — fontes logadas precisam de Chrome+sessão
+# e não funcionam bem em runner efêmero. Para logadas, use uma VM (Oracle Always Free)
+# ou um Raspberry Pi.
+#
+# Pré-requisitos no seu fork:
+#  1. Commite um config.yaml (gere com 'python garimpeiro.py setup', fontes logadas OFF)
+#     e um perfil.md. (Saem do .gitignore só no SEU fork privado, se quiser.)
+#  2. Settings -> Secrets and variables -> Actions -> adicione:
+#       GEMINI_API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID
+#  3. (opcional) Settings -> Pages -> Source: GitHub Actions, p/ publicar o painel.
+name: garimpo
+
+on:
+  schedule:
+    - cron: "0 11 * * *"   # 08:00 BRT
+    - cron: "0 23 * * *"   # 20:00 BRT
+  workflow_dispatch: {}     # botao "Run workflow" manual
+
+jobs:
+  garimpar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Coletar
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python garimpeiro.py once
+      - name: Guardar o painel como artefato (download em Actions)
+        uses: actions/upload-artifact@v4
+        with:
+          name: painel
+          path: public/
+
+  # --- OPCIONAL: publicar o painel no GitHub Pages (ATENCAO: Pages e publico!) ---
+  # Descomente e configure Settings -> Pages -> Source: GitHub Actions.
+  # Para manter privado, prefira so o Telegram, ou ponha Cloudflare Access na frente.
+  #
+  # deploy:
+  #   needs: garimpar
+  #   permissions: { pages: write, id-token: write }
+  #   environment: { name: github-pages }
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/download-artifact@v4
+  #       with: { name: painel, path: public }
+  #     - uses: actions/upload-pages-artifact@v3
+  #       with: { path: public }
+  #     - uses: actions/deploy-pages@v4

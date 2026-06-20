@@ -58,6 +58,8 @@ applied_csv_url: ""
 webapp_url: ""
 sync_token: ""
 painel_url: ""
+# Repo GitHub (usuario/repo) p/ link "Reportar problema". Vazio = sem link.
+github_repo: ""
 
 # Horários do 'schedule' (HH:MM separados por vírgula)
 run_at: "08:00,20:00"
