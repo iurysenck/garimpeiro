@@ -305,6 +305,7 @@ def main() -> int:
                 bot_user,
                 cfg.get("webapp_url", ""),
                 cfg.get("sync_token", ""),
+                cfg.get("brand", "Vagas"),
             )
             (html_path.parent / "version.json").write_text(
                 json.dumps(

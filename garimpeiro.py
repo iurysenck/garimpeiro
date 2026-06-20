@@ -6,6 +6,7 @@ Comandos:
   python garimpeiro.py once       # roda uma coleta agora
   python garimpeiro.py serve      # serve o painel em http://localhost:8765
   python garimpeiro.py schedule   # roda nos horários do config + serve o painel
+  python garimpeiro.py shortcut   # cria atalho na Área de Trabalho (+ dica p/ celular)
 
 Sem dependências de hospedagem: por padrão tudo roda local. Fontes públicas
 (Gupy/JobSpy/Trampos) não exigem login. As logadas e o painel remoto são opt-in.
@@ -81,6 +82,7 @@ def cmd_setup() -> None:
     cidade = ask("Cidade-base (filtro/busca)", "Rio de Janeiro")
     estado = ask("Estado aceito (nome como aparece nas vagas)", cidade)
     remoto = ask_yes("Incluir vagas remotas?", True)
+    brand = ask("Nome/marca no topo do painel (use '.' p/ destaque, ex: meu.vagas)", "Vagas")
 
     # 3) Chaves
     titulo("Chaves (vão para o .env, nunca commitado)")
@@ -117,7 +119,7 @@ def cmd_setup() -> None:
             PERFIL.write_text(exemplo.read_text(encoding="utf-8"), encoding="utf-8")
 
     # ---- config.yaml
-    escrever_config(bloco, cidade, estado, remoto, usar_logadas, bool(tg_tok))
+    escrever_config(bloco, cidade, estado, remoto, usar_logadas, bool(tg_tok), brand)
 
     titulo("Pronto!")
     print(f"- config.yaml e .env escritos em {BASE}")
@@ -138,9 +140,12 @@ def _yaml_list(items: list[str]) -> str:
     return "\n".join(f'  - "{i}"' for i in items)
 
 
-def escrever_config(bloco, cidade, estado, remoto, logadas, tem_tg) -> None:
+def escrever_config(bloco, cidade, estado, remoto, logadas, tem_tg, brand="Vagas") -> None:
     on = "true" if logadas else "false"
     cfg = f"""# Gerado por: python garimpeiro.py setup  (edite à vontade)
+
+# Marca exibida no topo do painel (parte após o "." ganha o gradiente).
+brand: "{brand}"
 
 search_terms:
 {_yaml_list(bloco['search_terms'])}
@@ -281,6 +286,51 @@ def cmd_schedule() -> int:
         time.sleep(20)
 
 
+def cmd_shortcut(port: int = 8765) -> int:
+    """Cria um atalho na Área de Trabalho que inicia o app + abre o painel.
+    No celular: o atalho é o PWA — abra o painel no navegador e 'Adicionar à tela inicial'."""
+    import os
+
+    desktop = Path(os.path.expanduser("~")) / "Desktop"
+    if not desktop.exists():
+        desktop = Path(os.path.expanduser("~")) / "Área de Trabalho"
+    desktop.mkdir(parents=True, exist_ok=True)
+    py = sys.executable
+    url = f"http://localhost:{port}"
+
+    if sys.platform.startswith("win"):
+        alvo = desktop / "Garimpeiro de Vagas.bat"
+        alvo.write_text(
+            f'@echo off\r\ncd /d "{BASE}"\r\nstart "" {url}\r\n"{py}" garimpeiro.py schedule\r\n',
+            encoding="utf-8",
+        )
+    elif sys.platform == "darwin":
+        alvo = desktop / "Garimpeiro de Vagas.command"
+        alvo.write_text(
+            f'#!/bin/bash\ncd "{BASE}"\nopen {url}\n"{py}" garimpeiro.py schedule\n',
+            encoding="utf-8",
+        )
+        os.chmod(alvo, 0o755)
+    else:
+        alvo = desktop / "garimpeiro-vagas.desktop"
+        alvo.write_text(
+            "[Desktop Entry]\nType=Application\nName=Garimpeiro de Vagas\n"
+            f'Exec=bash -c \'cd "{BASE}" && (xdg-open {url} &) && "{py}" garimpeiro.py schedule\'\n'
+            "Terminal=true\n",
+            encoding="utf-8",
+        )
+        os.chmod(alvo, 0o755)
+
+    print(f"Atalho criado: {alvo}")
+    print(f"Ao abrir, ele inicia a coleta agendada e abre o painel em {url}.")
+    print("\nNo CELULAR (atalho na tela inicial / PWA):")
+    print(f"  1. Abra o painel no navegador do celular (mesmo Wi-Fi: http://<ip-do-pc>:{port}")
+    print("     ou seu domínio, se usar modo nuvem).")
+    print("  2. iPhone: botão Compartilhar -> 'Adicionar à Tela de Início'.")
+    print("     Android: menu do navegador -> 'Instalar app' / 'Adicionar à tela inicial'.")
+    return 0
+
+
 def main_cli() -> int:
     cmd = sys.argv[1] if len(sys.argv) > 1 else "help"
     if cmd == "setup":
@@ -292,6 +342,8 @@ def main_cli() -> int:
         return cmd_serve()
     if cmd == "schedule":
         return cmd_schedule()
+    if cmd == "shortcut":
+        return cmd_shortcut()
     print(__doc__)
     return 0
 

@@ -1,6 +1,9 @@
 # Exemplo de configuração. O jeito fácil é rodar:  python garimpeiro.py setup
 # (gera o config.yaml pra você). Ou copie este arquivo para config.yaml e edite.
 
+# Marca no topo do painel (parte após o "." ganha o gradiente). Ex: "meu.vagas"
+brand: "Vagas"
+
 # Termos buscados em cada fonte. Use os presets (presets.py) ou escreva os seus.
 search_terms:
   - "designer gráfico"

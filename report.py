@@ -1,6 +1,6 @@
 """Saída: painel HTML (abas, cards, filtros, arquivar, aplicados, notas) + Telegram.
 
-Design iury.art: dark editorial, Syne + Space Grotesk, accent #ff3366 → #6366f1.
+Design: dark editorial, Syne + Space Grotesk, accent #ff3366 → #6366f1 (personalizável).
 Ícones via Lucide (igual ao portfólio). Arquivar/Aplicados/Notas cross-device
 (Web App do .gs) com localStorage de fallback. Swipe lateral troca de aba.
 """
@@ -33,6 +33,15 @@ AREA_CHIPS = [
 
 def _ic(name: str) -> str:
     return f'<i data-lucide="{name}"></i>'
+
+
+def _brand_html(brand: str) -> str:
+    """Marca: tudo antes do 1º '.' normal, o resto em gradiente (negrito)."""
+    b = html.escape(brand or "Vagas")
+    if "." in b:
+        a, resto = b.split(".", 1)
+        return f"{a}<b>.{resto}</b>"
+    return f"<b>{b}</b>"
 
 
 def _fmt_data(iso: str) -> str:
@@ -404,6 +413,26 @@ _CSS = """
     display:inline-flex;align-items:center;gap:8px;transition:transform .35s cubic-bezier(.16,1,.3,1)}
   .livetoast.on{transform:translateX(-50%) translateY(0)}
   .livetoast svg.lucide{width:16px;height:16px}
+  .themepanel{position:fixed;right:14px;top:62px;z-index:60;width:240px;display:none;
+    background:rgba(12,12,15,.97);border:1px solid var(--line);border-radius:16px;padding:14px;
+    box-shadow:0 14px 44px rgba(0,0,0,.55)}
+  .themepanel.on{display:block;animation:paneInR .2s ease}
+  .themepanel h4{font-family:'Syne',sans-serif;font-size:.82rem;margin-bottom:10px;color:#fff}
+  .swatches{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .sw{width:30px;height:30px;border-radius:9px;cursor:pointer;border:2px solid transparent;transition:transform .15s}
+  .sw:hover{transform:scale(1.1)} .sw.on{border-color:#fff}
+  .trow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:9px 0;
+    font-size:.82rem;color:var(--muted)}
+  .trow input[type=color]{width:36px;height:28px;border:1px solid var(--line);border-radius:6px;
+    background:none;cursor:pointer;padding:0}
+  .tbtn{width:100%;margin-top:8px;background:var(--card);border:1px solid var(--line);color:#fff;
+    border-radius:10px;padding:9px;cursor:pointer;font-family:inherit;font-size:.8rem}
+  .tbtn:hover{border-color:var(--accent)}
+  body.lighttheme .title a,body.lighttheme .grp,body.lighttheme .nota .title{color:#15151a}
+  body.lighttheme .resumo,body.lighttheme .notabody{color:#33333a}
+  body.lighttheme .notabody{background:rgba(0,0,0,.04)}
+  body.lighttheme .topbar{background:rgba(246,246,248,.88)}
+  body.lighttheme .glow,body.lighttheme .glow2{opacity:.06}
 """
 
 
@@ -615,6 +644,35 @@ _JS = """
   setInterval(function(){if(!document.hidden)checaVersao();},90000);
   setInterval(function(){if(!document.hidden)resync();},45000);
   document.addEventListener('visibilitychange',function(){if(!document.hidden){checaVersao();resync();}});
+
+  // ---- personalização de cores ----
+  const TPRE=[['#ff3366','#6366f1'],['#22c55e','#06b6d4'],['#f59e0b','#ef4444'],['#8b5cf6','#ec4899'],['#0ea5e9','#14b8a6'],['#eab308','#f97316']];
+  function applyTheme(t){
+    const r=document.documentElement.style;
+    r.setProperty('--accent',t.a1);r.setProperty('--accent2',t.a2);
+    r.setProperty('--grad','linear-gradient(135deg,'+t.a1+','+t.a2+')');
+    if(t.light){r.setProperty('--bg','#f6f6f8');r.setProperty('--text','#15151a');r.setProperty('--muted','#5a5a66');
+      r.setProperty('--card','rgba(0,0,0,.03)');r.setProperty('--line','rgba(0,0,0,.10)');document.body.classList.add('lighttheme');}
+    else{['--bg','--text','--muted','--card','--line'].forEach(v=>r.removeProperty(v));document.body.classList.remove('lighttheme');}
+  }
+  function getTheme(){try{return JSON.parse(localStorage.getItem('garimpo_theme'))||{a1:'#ff3366',a2:'#6366f1',light:false};}catch(e){return {a1:'#ff3366',a2:'#6366f1',light:false};}}
+  function saveTheme(t){localStorage.setItem('garimpo_theme',JSON.stringify(t));}
+  let theme=getTheme();applyTheme(theme);
+  const tpanel=document.getElementById('themepanel'),themebtn=document.getElementById('themebtn');
+  const c1=document.getElementById('c1'),c2=document.getElementById('c2'),lightchk=document.getElementById('lightchk');
+  if(c1){c1.value=theme.a1;c2.value=theme.a2;lightchk.checked=!!theme.light;}
+  if(themebtn)themebtn.onclick=function(e){e.stopPropagation();tpanel.classList.toggle('on');};
+  document.addEventListener('click',function(e){if(tpanel&&tpanel.classList.contains('on')&&!tpanel.contains(e.target)&&themebtn&&!themebtn.contains(e.target))tpanel.classList.remove('on');});
+  const swbox=document.getElementById('swatches');
+  if(swbox)TPRE.forEach(function(p){var d=document.createElement('div');d.className='sw';
+    d.style.background='linear-gradient(135deg,'+p[0]+','+p[1]+')';
+    d.onclick=function(){theme.a1=p[0];theme.a2=p[1];if(c1){c1.value=p[0];c2.value=p[1];}saveTheme(theme);applyTheme(theme);};swbox.appendChild(d);});
+  if(c1){c1.oninput=function(){theme.a1=c1.value;saveTheme(theme);applyTheme(theme);};
+    c2.oninput=function(){theme.a2=c2.value;saveTheme(theme);applyTheme(theme);};
+    lightchk.onchange=function(){theme.light=lightchk.checked;saveTheme(theme);applyTheme(theme);};}
+  const treset=document.getElementById('treset');
+  if(treset)treset.onclick=function(){theme={a1:'#ff3366',a2:'#6366f1',light:false};saveTheme(theme);applyTheme(theme);if(c1){c1.value=theme.a1;c2.value=theme.a2;lightchk.checked=false;}};
+
   refresh();
 """
 
@@ -629,6 +687,7 @@ def gerar_html(
     bot_username: str = "",
     webapp_url: str = "",
     sync_token: str = "",
+    brand: str = "Vagas",
 ) -> None:
     """Escreve o painel HTML (abas, ícones Lucide, arquivar/aplicados/notas)."""
     new_uids = new_uids or set()
@@ -653,23 +712,32 @@ def gerar_html(
     doc = f"""<!doctype html>
 <html lang="pt-br"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Vagas · iury.art</title>
+<title>Vagas · {html.escape(brand)}</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#050505">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Vagas">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="icon" type="image/png" href="icon.png">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/lucide@latest"></script>
-<style>{_CSS}</style></head>
+<style>{_CSS}</style>
+<script>(function(){{try{{var t=JSON.parse(localStorage.getItem('garimpo_theme'));if(!t)return;
+var r=document.documentElement.style;r.setProperty('--accent',t.a1);r.setProperty('--accent2',t.a2);
+r.setProperty('--grad','linear-gradient(135deg,'+t.a1+','+t.a2+')');
+if(t.light){{r.setProperty('--bg','#f6f6f8');r.setProperty('--text','#15151a');r.setProperty('--muted','#5a5a66');
+r.setProperty('--card','rgba(0,0,0,.03)');r.setProperty('--line','rgba(0,0,0,.10)');
+document.documentElement.classList.add('prelight');}}}}catch(e){{}}}})();</script>
+</head>
 <body>
   <div class="glow"></div><div class="glow2"></div>
   <header class="topbar">
     <div class="bar1">
-      <div class="brand">iury<b>.vagas</b></div>
+      <div class="brand">{_brand_html(brand)}</div>
       <div class="sub">{len(new_uids)} novas · {gerado_em}</div>
     </div>
     <nav class="tabs">
@@ -678,6 +746,7 @@ def gerar_html(
       <button class="tab" data-tab="cand">{_ic("bookmark")} Candidaturas <span class="n">{len(candidaturas)}</span></button>
       <button class="tab" data-tab="notas">{_ic("notebook-pen")} Notas</button>
       <button id="densbtn" class="iconbtn">{_ic("layout-list")} <span class="dlbl">Mais info</span></button>
+      <button id="themebtn" class="iconbtn" title="Cores">{_ic("palette")}</button>
       <button id="favtog" class="iconbtn">{_ic("star")} <span class="n">0</span></button>
       <button id="apltog" class="iconbtn">{_ic("circle-check")} <span class="n">0</span></button>
       <button id="arqtog" class="iconbtn">{_ic("archive")} <span class="n">0</span></button>
@@ -690,6 +759,14 @@ def gerar_html(
       </div>
     </div>
   </header>
+  <div class="themepanel" id="themepanel">
+    <h4>{_ic("palette")} Cores do painel</h4>
+    <div class="swatches" id="swatches"></div>
+    <div class="trow"><span>Cor 1</span><input type="color" id="c1" value="#ff3366"></div>
+    <div class="trow"><span>Cor 2</span><input type="color" id="c2" value="#6366f1"></div>
+    <div class="trow"><span>Tema claro</span><input type="checkbox" id="lightchk"></div>
+    <button class="tbtn" id="treset">Restaurar padrão</button>
+  </div>
   <main>
     <section id="tab-vagas" class="panel">
       {grupos}
