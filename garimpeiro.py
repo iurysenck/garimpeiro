@@ -121,8 +121,13 @@ def cmd_setup() -> None:
     # ---- config.yaml
     escrever_config(bloco, cidade, estado, remoto, usar_logadas, bool(tg_tok), brand)
 
+    sites = ["Gupy", "Indeed", "LinkedIn", "Google (JobSpy)", "Trampos.co"]
+    if usar_logadas:
+        sites += ["Vagas.com", "Catho", "Workana", "99freelas", "Jobbol"]
+
     titulo("Pronto!")
     print(f"- config.yaml e .env escritos em {BASE}")
+    print(f"- Sites monitorados: {', '.join(sites)}")
     print(f"- EDITE seu currículo em: {PERFIL}  (é o que a IA usa pra pontuar)")
     if usar_logadas:
         print("- Fontes logadas ON: rode 'python login_nodriver.py' e logue nos sites.")

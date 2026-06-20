@@ -88,7 +88,7 @@ fontes logadas (precisam de Chrome) variam por SO.
 | **Raspberry Pi Zero 2 W** | ✅ públicas | leve, 24/7; logadas NÃO (Chromium não cabe em 512MB) |
 | Raspberry Pi 4/5 (2GB+) | ✅ tudo | logadas OK |
 | **GitHub Actions** (grátis) | ✅ públicas | cron sem hardware — veja `.github/workflows/garimpo.yml` |
-| **Oracle Cloud Always Free** (VM ARM) | ✅ tudo | grátis pra sempre, roda Chromium |
+| **Oracle Cloud Always Free** (VM ARM) | ✅ tudo | grátis pra sempre — guia completo em [ORACLE.md](ORACLE.md) |
 | ESP32 / microcontrolador | ❌ | sem SO/Python/Chrome — não roda |
 
 > "Independente do meu PC, grátis": **GitHub Actions** (público) ou **Oracle Always Free**
@@ -100,6 +100,7 @@ Coloque um `.py` em `plugins/` — é descoberto sozinho. Dois tipos:
 - **Seção no painel:** veja `plugins/exemplo_painel.py` → retorna HTML.
 
 Um plugin com erro é só pulado (não quebra a rodada). Dedup/IA/painel vêm de graça.
+**Tutorial passo a passo:** [PLUGINS.md](PLUGINS.md).
 
 ## Contribuir / reportar erro
 - **Reportar problema:** rodapé do painel ou botão no alerta do Telegram (já preenche o issue).
