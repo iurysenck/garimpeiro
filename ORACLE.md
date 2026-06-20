@@ -57,6 +57,32 @@ Comum no free. Opções:
   dá acesso a um pool maior → resolve quase sempre.
 - Scripts que ficam tentando sozinhos existem (ex.: `hitrov/oci-arm-host-capacity`).
 
+### 2.5 Qual imagem é a mais segura
+Duas coisas a olhar na lista de imagens: o selo **"Shielded instance"** e a distro.
+
+- **Shielded instance** (Secure Boot + Measured Boot + TPM/vTPM) bloqueia rootkits de boot
+  e adulteração — **prefira uma imagem com esse selo** quando existir.
+- **Distro mantida e com patches frequentes** importa mais que a "marca".
+
+Recomendações (da mais "auto-segura" à mais comum):
+
+| Imagem | Por quê | Observações |
+|--------|---------|-------------|
+| **Oracle Autonomous Linux** | auto-aplica patches de segurança sozinho (self-patching), zero downtime | mais "set and forget"; baseado em Oracle Linux (use `dnf`, não `apt`) |
+| **Oracle Linux 9** (Shielded) | mantida pela Oracle, shielded, hardening fácil | `dnf`; ótima se não quiser depender de terceiros |
+| **Ubuntu 24.04** (Shielded) | LTS até 2029, comunidade enorme, é o que este guia usa (`apt`) | versão x86 vem shielded |
+| **Ubuntu 24.04 Minimal aarch64** | imagem ARM p/ o shape Ampere A1 (free) | pode **não** ter selo shielded — tudo bem (veja nota abaixo) |
+
+**Para o shape ARM free (Ampere A1):** a imagem **precisa ser aarch64** (ex.: *Canonical
+Ubuntu 24.04 Minimal aarch64* ou Oracle Linux ARM). As variantes Minimal/aarch64 às vezes
+**não** trazem o selo "Shielded" — não é problema: a maior parte da segurança vem do
+**hardening** do passo 3 (firewall só na 22, fail2ban, SSH só por chave, painel nunca
+exposto), não do flavor da imagem.
+
+> Resumo: **Ubuntu 24.04 (aarch64 no ARM)** = mais alinhado a este guia. Quer o máximo de
+> "se cuida sozinho"? **Oracle Autonomous Linux** (mas troque `apt` por `dnf` nos comandos).
+> Em qualquer caso, marque **Shielded instance** se a imagem oferecer.
+
 ---
 
 ## 3. Segurança da VM (faça ANTES de instalar o app)
