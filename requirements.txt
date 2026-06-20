@@ -1,0 +1,7 @@
+# Garimpeiro de vagas — dependências
+python-jobspy>=1.1.80      # raspa Indeed, LinkedIn, Glassdoor, Google Jobs
+requests>=2.31             # Gupy API + Telegram
+google-genai>=0.3          # matching semântico (Gemini)
+PyYAML>=6.0                # config.yaml
+python-dotenv>=1.0         # carrega .env (chaves)
+nodriver>=0.38             # scraping logado undetected (Vagas.com via API + token)

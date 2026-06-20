@@ -1,0 +1,66 @@
+# Exemplo de configuração. O jeito fácil é rodar:  python garimpeiro.py setup
+# (gera o config.yaml pra você). Ou copie este arquivo para config.yaml e edite.
+
+# Termos buscados em cada fonte. Use os presets (presets.py) ou escreva os seus.
+search_terms:
+  - "designer gráfico"
+  - "designer"
+  - "social media"
+  - "editor de vídeo"
+
+# Escopo geográfico
+location: "Rio de Janeiro"
+location_full: "Rio de Janeiro, Brazil"
+include_remote: true
+accepted_states:
+  - "Rio de Janeiro"
+
+min_score: 6                 # só mostra vagas com score >= isso (0-10)
+exclude_pcd: true            # remove vagas reservadas a PcD
+exclude_title_keywords:      # exclui pelo título
+  - "estágio"
+  - "estagiário"
+  - "aprendiz"
+
+max_per_term: 15
+hours_old: 96                # só vagas das últimas N horas (0 = sem limite)
+
+gemini_model: "gemini-3.1-flash-lite"
+gemini_batch_size: 8
+
+# Fontes. Públicas não precisam de login. Logadas exigem login_nodriver.py + Chrome.
+sources:
+  gupy: true
+  jobspy: true
+  trampos: true
+  vagas_logado: false
+  catho_logado: false
+  workana_logado: false
+  freelas99_logado: false
+  jobbol: false
+
+trampos_categories: ["design", "criacao"]
+trampos_max_pages: 3
+jobbol_cargos: ["designer-grafico", "designer"]
+jobbol_max_pages: 2
+workana_categories: ["design-multimedia"]
+workana_max_pages: 3
+freelas99_max_pages: 3
+vagas_logado_max_pages: 4
+jobspy_sites: ["indeed", "linkedin", "google"]
+
+# Painel/sync remoto (opcional — só p/ modo nuvem). Vazio = painel 100% local.
+tracker_csv_url: ""
+applied_csv_url: ""
+webapp_url: ""
+sync_token: ""
+painel_url: ""
+
+# Horários do 'schedule' (HH:MM separados por vírgula)
+run_at: "08:00,20:00"
+
+output:
+  html: true
+  html_path: "public/index.html"
+  telegram: false
+  telegram_top_n: 10
