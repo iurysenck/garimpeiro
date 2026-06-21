@@ -149,6 +149,7 @@ def _yaml_list(items: list[str]) -> str:
 def escrever_config(
     bloco, cidade, estado, remoto, logadas, tem_tg, brand="Vagas",
     github_repo="", run_at="08:00,20:00", estados=None, exclude_pcd=True,
+    ai_provider="gemini", ai_model="",
 ) -> None:
     # estados aceitos: lista (nome + sigla) ou, no fallback do CLI, só o texto.
     lista_estados = [s for s in (estados or [estado]) if str(s).strip()]
@@ -179,6 +180,11 @@ exclude_title_keywords:
 max_per_term: 15
 hours_old: 96
 
+# IA que dá a nota. Provider: gemini (grátis) | openai | anthropic | ollama (local).
+# Chaves no .env. ai_model vazio = padrão de cada provider. Edite prompt.md p/ mudar o prompt.
+ai_provider: "{ai_provider}"
+ai_model: "{ai_model}"
+ai_daily_warn: 1400
 gemini_model: "gemini-3.1-flash-lite"
 gemini_batch_size: 8
 

@@ -274,9 +274,7 @@ def main() -> int:
 
         if novas:
             log("Avaliando com IA...")
-            matcher.score_jobs(
-                novas, perfil, cfg["gemini_model"], cfg["gemini_batch_size"], log
-            )
+            matcher.score_jobs(novas, perfil, cfg, log)
             store.save_all(novas)  # marca todas como vistas
 
         min_score = cfg["min_score"]

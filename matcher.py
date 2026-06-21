@@ -6,11 +6,15 @@ Em lote para economizar quota. Se a IA falhar, cai para score neutro.
 from __future__ import annotations
 
 import json
-import os
 import re
 import time
+from pathlib import Path
 
+import ai
 from sources import Job
+
+BASE = Path(__file__).resolve().parent
+PROMPT_FILE = BASE / "prompt.md"  # se existir, sobrescreve o prompt padrão
 
 _FENCE_RE = re.compile(r"^```(?:json)?|```$", re.MULTILINE)
 _RETRY_RE = re.compile(r"retry.{0,12}?(\d+(?:\.\d+)?)s", re.IGNORECASE)
@@ -72,52 +76,68 @@ def _parse(text: str) -> list[dict]:
         return []
 
 
-def _generate(client, model: str, prompt: str, log) -> list[dict]:
-    """Chama o Gemini com 1 retry em caso de rate-limit (429)."""
+def _load_prompt() -> str:
+    """Prompt padrão, ou o de prompt.md se o usuário tiver criado um."""
+    if PROMPT_FILE.exists():
+        try:
+            txt = PROMPT_FILE.read_text(encoding="utf-8").strip()
+            if "{perfil}" in txt and "{vagas}" in txt:
+                return txt
+        except Exception:  # noqa: BLE001
+            pass
+    return _PROMPT
+
+
+def _generate(provider, prompt: str, log) -> list[dict]:
+    """Chama a IA com 1 retry em caso de rate-limit (429)."""
     for tentativa in (1, 2):
         try:
-            resp = client.models.generate_content(model=model, contents=prompt)
-            return _parse(resp.text or "")
+            return _parse(provider.generate(prompt) or "")
         except Exception as exc:  # noqa: BLE001
             msg = str(exc)
-            rate_limited = "429" in msg or "RESOURCE_EXHAUSTED" in msg
+            rate_limited = "429" in msg or "RESOURCE_EXHAUSTED" in msg or "rate" in msg.lower()
             if rate_limited and tentativa == 1:
                 m = _RETRY_RE.search(msg)
                 espera = min(float(m.group(1)) + 1 if m else 40.0, _MAX_WAIT_S)
                 log(f"  [Matcher] rate-limit; aguardando {espera:.0f}s e tentando de novo")
                 time.sleep(espera)
                 continue
-            log(f"  [Matcher] erro Gemini: {msg[:160]}")
+            log(f"  [Matcher] erro IA: {msg[:160]}")
             return []
     return []
 
 
-def score_jobs(jobs: list[Job], perfil: str, model: str, batch_size: int, log) -> None:
-    """Atribui score/resumo/motivo a cada Job (mutação in-place)."""
+def score_jobs(jobs: list[Job], perfil: str, cfg: dict, log) -> None:
+    """Atribui score/resumo/motivo a cada Job (mutação in-place).
+
+    Usa o provider de IA de cfg['ai_provider'] (gemini/openai/anthropic/ollama).
+    Sem credencial → score neutro 6 (o app funciona, só não ranqueia)."""
     if not jobs:
         return
-    api_key = os.environ.get("GEMINI_API_KEY", "").strip()
-    if not api_key:
-        log("  [Matcher] GEMINI_API_KEY ausente — usando score neutro (6)")
+    provider = ai.make_provider(cfg)
+    if provider is None:
+        log("  [Matcher] sem IA configurada — usando score neutro (6)")
         for job in jobs:
             job.score, job.resumo = 6, job.description[:160]
-            job.motivo = "Sem IA: score neutro. Configure GEMINI_API_KEY."
+            job.motivo = "Sem IA: score neutro. Configure uma chave no setup."
         return
 
-    try:
-        from google import genai
-    except ImportError:
-        log("  [Matcher] google-genai não instalado — score neutro")
-        for job in jobs:
-            job.score, job.resumo = 6, job.description[:160]
-        return
+    batch_size = int(cfg.get("gemini_batch_size", 8))
+    throttle = _THROTTLE_S if provider.name == "gemini" else float(cfg.get("ai_throttle_s", 0))
+    warn_at = int(cfg.get("ai_daily_warn", 1400))
+    prompt_tmpl = _load_prompt()
+    log(f"  [Matcher] IA: {provider.name} ({getattr(provider, 'model', 'local')})")
 
-    client = genai.Client(api_key=api_key)
+    avisado = False
     for bi, batch in enumerate(_chunks(jobs, batch_size)):
-        if bi:
-            time.sleep(_THROTTLE_S)  # respeita 15 req/min do tier grátis
-        prompt = _PROMPT.format(perfil=perfil, vagas=_format_vagas(batch))
-        results = _generate(client, model, prompt, log)
+        if bi and throttle:
+            time.sleep(throttle)  # respeita limites do tier grátis
+        prompt = prompt_tmpl.format(perfil=perfil, vagas=_format_vagas(batch))
+        results = _generate(provider, prompt, log)
+        usados = ai.record_call(BASE)
+        if not avisado and usados >= warn_at:
+            avisado = True
+            log(f"  [Matcher] ATENÇÃO: {usados} chamadas de IA hoje (perto do limite diário)")
 
         by_index = {int(r["i"]): r for r in results if "i" in r}
         for i, job in enumerate(batch):
