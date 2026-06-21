@@ -148,7 +148,7 @@ def _yaml_list(items: list[str]) -> str:
 
 def escrever_config(
     bloco, cidade, estado, remoto, logadas, tem_tg, brand="Vagas",
-    github_repo="", run_at="08:00,20:00", estados=None,
+    github_repo="", run_at="08:00,20:00", estados=None, exclude_pcd=True,
 ) -> None:
     # estados aceitos: lista (nome + sigla) ou, no fallback do CLI, só o texto.
     lista_estados = [s for s in (estados or [estado]) if str(s).strip()]
@@ -170,7 +170,7 @@ accepted_states:
 {_yaml_list(lista_estados)}
 
 min_score: 6
-exclude_pcd: true
+exclude_pcd: {"true" if exclude_pcd else "false"}
 exclude_title_keywords:
   - "estágio"
   - "estagiário"

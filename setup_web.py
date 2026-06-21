@@ -97,6 +97,7 @@ def _prefill() -> dict:
         "cidade": cfg.get("location", "Rio de Janeiro"),
         "state_code": _state_code_from(estados) if estados else "RJ",
         "remoto": bool(cfg.get("include_remote", True)),
+        "pcd": not bool(cfg.get("exclude_pcd", True)),
         "brand": cfg.get("brand", "Vagas"),
         "logadas": bool(src.get("vagas_logado") or src.get("catho_logado") or src.get("jobbol")),
         "github_repo": cfg.get("github_repo") or DEFAULT_REPO,
@@ -128,6 +129,7 @@ def _salvar(dados: dict) -> dict:
     estado_compat = estados[0] if estados else cidade
 
     remoto = bool(dados.get("remoto", True))
+    exclude_pcd = not bool(dados.get("pcd", False))
     brand = (dados.get("brand") or "Vagas").strip()
     logadas = bool(dados.get("logadas", False))
     github_repo = (dados.get("github_repo") or "").strip().strip("/")
@@ -149,6 +151,7 @@ def _salvar(dados: dict) -> dict:
     g.escrever_config(
         bloco, cidade, estado_compat, remoto, logadas, bool(tg_tok), brand,
         github_repo=github_repo, run_at=run_at, estados=estados or None,
+        exclude_pcd=exclude_pcd,
     )
 
     sites = ["Gupy", "Indeed", "LinkedIn", "Google (JobSpy)", "Trampos.co"]
@@ -238,6 +241,7 @@ def build_page(token: str) -> str:
         .replace("__TGCHAT__", _esc(pf["tg_chat"]))
         .replace("__LANIP__", _esc(_lan_ip()))
         .replace("__REMOTO__", " checked" if pf["remoto"] else "")
+        .replace("__PCD__", " checked" if pf["pcd"] else "")
         .replace("__LOGADAS__", " checked" if pf["logadas"] else "")
     )
 
@@ -355,22 +359,32 @@ _PAGE = """<!doctype html>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
-  :root{--bg:#050505;--text:#f4f4f5;--muted:#a1a1aa;--line:rgba(255,255,255,.12);
-    --a1:#ff3366;--a2:#6366f1;--grad:linear-gradient(135deg,#ff3366,#6366f1)}
+  :root{--bg:#080809;--text:#f1f1f4;--muted:#9a9aa6;--line:rgba(255,255,255,.10);
+    --a1:#6366f1;--a2:#7c83ff;--accent:#6366f1;--accentd:#4f46e5;
+    --grad:linear-gradient(180deg,#5b62e6,#4b51c9);
+    --brandgrad:linear-gradient(135deg,#ff3366,#6366f1);--panel:#101016}
   *{box-sizing:border-box}
+  /* scrollbar no estilo da página */
+  *{scrollbar-width:thin;scrollbar-color:rgba(124,131,255,.5) transparent}
+  *::-webkit-scrollbar{width:10px;height:10px}
+  *::-webkit-scrollbar-track{background:transparent}
+  *::-webkit-scrollbar-thumb{background:rgba(124,131,255,.35);border-radius:8px;
+    border:2px solid transparent;background-clip:content-box}
+  *::-webkit-scrollbar-thumb:hover{background:rgba(124,131,255,.6);background-clip:content-box}
   body{margin:0;background:var(--bg);color:var(--text);font-family:'Space Grotesk',system-ui,sans-serif;
     line-height:1.5;padding:26px 16px 40px}
-  .glow{position:fixed;width:560px;height:560px;border-radius:50%;filter:blur(120px);opacity:.16;z-index:-1;
-    background:var(--grad);top:-160px;left:-120px;pointer-events:none}
-  .glow2{position:fixed;width:480px;height:480px;border-radius:50%;filter:blur(120px);opacity:.12;z-index:-1;
-    background:radial-gradient(circle,#6366f1,transparent 70%);bottom:-160px;right:-120px;pointer-events:none}
+  .glow{position:fixed;width:480px;height:480px;border-radius:50%;filter:blur(90px);opacity:.10;z-index:-1;
+    background:radial-gradient(circle,#4f46e5,transparent 70%);top:-170px;left:-130px;pointer-events:none}
+  .glow2{position:fixed;width:420px;height:420px;border-radius:50%;filter:blur(90px);opacity:.08;z-index:-1;
+    background:radial-gradient(circle,#6366f1,transparent 70%);bottom:-170px;right:-130px;pointer-events:none}
   .wrap{max-width:680px;margin:0 auto}
   h1{font-family:'Syne',sans-serif;font-size:clamp(1.6rem,1rem + 3vw,2.3rem);margin:0;letter-spacing:-.02em}
   h1 b{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
   /* barra de progresso por etapas */
   .steps{display:flex;gap:6px;margin:16px 0 18px}
-  .steps i{flex:1;height:4px;border-radius:3px;background:rgba(255,255,255,.12);transition:background .3s}
-  .steps i.on{background:var(--grad)}
+  .steps i{flex:1;height:4px;border-radius:3px;background:rgba(255,255,255,.10);transition:background .3s}
+  .steps i.on{background:var(--accent)}
+  .steps i.cur{background:var(--a2);box-shadow:0 0 10px rgba(124,131,255,.5)}
   .stepnum{font-size:.76rem;color:var(--muted);margin-bottom:6px}
   .card{position:relative;border-radius:18px;padding:20px 22px;
     background:radial-gradient(135% 90% at 22% 0%,rgba(255,255,255,.11),rgba(255,255,255,.028) 56%);
@@ -432,6 +446,21 @@ _PAGE = """<!doctype html>
   .done code{background:rgba(255,255,255,.08);padding:2px 7px;border-radius:6px;font-size:.82rem;color:var(--text)}
   code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:6px;font-size:.84em}
   small.muted{color:var(--muted)}
+  /* contraste real no dropdown nativo */
+  select option{background:#13131a;color:#f1f1f4}
+  /* nota de segurança */
+  .sec{display:flex;gap:10px;align-items:flex-start;margin-top:14px;padding:11px 13px;border-radius:12px;
+    background:rgba(52,211,153,.07);border:1px solid rgba(52,211,153,.22);font-size:.79rem;color:#cbd5cf;line-height:1.6}
+  .sec b{color:#9fe9c9} .sec svg,.sec .ic{flex:0 0 auto;margin-top:1px}
+  .sec .ic{width:16px;height:16px;color:#34d399}
+  /* preview do nome no painel */
+  .bprev{margin-top:10px;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+  .bprev .pvbar{display:flex;align-items:center;gap:9px;padding:11px 14px;
+    border-bottom:1px solid var(--line);background:rgba(0,0,0,.25)}
+  .bprev .pvbrand{font-family:'Syne',sans-serif;font-weight:800;font-size:1.15rem;letter-spacing:-.01em}
+  .bprev .pvbrand2{background:var(--brandgrad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .bprev .pvsub{color:var(--muted);font-size:.72rem;margin-left:auto}
+  .bprev .pvtag{font-size:.68rem;color:var(--muted);padding:7px 14px}
 </style></head>
 <body>
 <div class="glow"></div><div class="glow2"></div>
@@ -464,6 +493,8 @@ _PAGE = """<!doctype html>
       <label class="field" style="margin-top:10px"><span>Cidade-base</span>
         <input type="text" id="cidade" value="__CIDADE__" placeholder="ex: Rio de Janeiro"></label>
       <label class="toggle"><input type="checkbox" id="remoto"__REMOTO__> Incluir vagas remotas (de qualquer lugar)</label>
+      <label class="toggle"><input type="checkbox" id="pcd"__PCD__> Incluir vagas afirmativas/exclusivas para PcD</label>
+      <p class="why" style="margin-top:10px;border-color:var(--line)">Por padrão o garimpeiro <b>esconde</b> vagas reservadas a PcD (Pessoa com Deficiência), pra não mostrar o que você não poderia aplicar. Se você <b>é PcD</b>, marque acima pra <b>incluí-las</b>.</p>
     </section>
 
     <!-- ETAPA 3 -->
@@ -476,6 +507,10 @@ _PAGE = """<!doctype html>
           <input type="text" id="run_at" value="__RUNAT__" placeholder="08:00,20:00"></label>
         <label class="field"><span>Nome no topo do painel</span>
           <input type="text" id="brand" value="__BRAND__" placeholder="ex: meu.vagas"></label>
+      </div>
+      <div class="bprev">
+        <div class="pvbar"><span class="pvbrand" id="pvbrand"></span><span class="pvsub">3 novas · hoje</span></div>
+        <div class="pvtag">prévia de como o nome aparece no topo do seu painel</div>
       </div>
     </section>
 
@@ -500,6 +535,7 @@ _PAGE = """<!doctype html>
       </div>
       <div class="tag" id="tgtag"></div>
       <p class="why" style="margin-top:10px;border-color:var(--line)"><b>Bem mais fácil:</b> 1) no <b>@BotFather</b> mande <code>/newbot</code> e siga — ele te dá um <b>token</b>, cole acima · 2) abra a conversa do seu bot e mande um "oi" · 3) clique <b>Detectar</b>: eu valido o token e pego seu <b>chat ID</b> automaticamente.</p>
+      <div class="sec"><span>🔒</span><div><b>Segurança das chaves:</b> elas vão só pro arquivo <code>.env</code>, que está no <code>.gitignore</code> — nunca sobem pro GitHub nem saem do seu PC. Este instalador roda só em <code>127.0.0.1</code> (local, sem rede). O "Detectar Telegram" é a <b>única</b> vez que algo sai daqui: uma chamada ao próprio Telegram, com o seu token, e só quando você clica.</div></div>
     </section>
 
     <!-- ETAPA 5 -->
@@ -519,10 +555,15 @@ _PAGE = """<!doctype html>
           <button type="button" class="cpy" data-cpy="http://__LANIP__:8765">Copiar</button>
         </div>
         <div class="arow">
-          <div class="k">De qualquer lugar (fora de casa)<small>túnel seguro, sem abrir portas — passo a passo no README</small></div>
+          <div class="k">De qualquer lugar (fora de casa)<small>túnel seguro, sem abrir portas</small></div>
           <a class="lk" href="https://tailscale.com/" target="_blank" rel="noopener">Tailscale</a>
         </div>
       </div>
+      <p class="why" style="margin-top:14px;border-color:var(--line)"><b>Quer ver fora de casa? Duas formas seguras (sem abrir portas no roteador):</b><br>
+        • <b>Tailscale</b> (recomendado): cria uma rede privada criptografada entre seus aparelhos. Instala no PC e no celular, faz login com a mesma conta, e o painel fica acessível só pra você, de qualquer lugar. Grátis pra uso pessoal.<br>
+        • <b>Cloudflare Tunnel</b>: dá um endereço <code>https</code> protegido pela Cloudflare, sem expor seu IP de casa.<br>
+        Passo a passo dos dois no <code>README</code>. Não precisa acessar fora de casa? Ignore — PC e celular na mesma Wi-Fi já bastam.</p>
+      <div class="sec"><span>🔒</span><div><b>Por que NÃO "abrir porta" no roteador:</b> isso deixaria o painel exposto na internet pública, e qualquer um poderia tentar acessar. Tailscale/Cloudflare evitam isso — o painel nunca fica aberto pro mundo, só pra você (rede privada / túnel autenticado).</div></div>
     </section>
 
     <!-- ETAPA 6 -->
@@ -534,11 +575,12 @@ _PAGE = """<!doctype html>
         <input type="text" id="github_repo" value="__GITHUB__"></label>
       <label class="toggle"><input type="checkbox" id="logadas"__LOGADAS__> Ativar fontes LOGADAS (Vagas.com/Catho/Workana/99freelas + Jobbol)</label>
       <p class="why" style="margin-top:10px;border-color:var(--line)">As logadas exigem Chrome + login manual (<code>login_nodriver.py</code>) e quebram mais fácil. Deixe desligado se estiver começando — dá pra ligar depois.</p>
+      <div class="sec"><span>🔒</span><div><b>Sobre as fontes logadas:</b> usam o seu login real num navegador automatizado (<code>login_nodriver.py</code>, rodado só por você, na sua máquina). As credenciais ficam no <b>seu</b> computador — o garimpeiro não envia sua senha a lugar nenhum.</div></div>
       <div class="err" id="err"></div>
     </section>
 
     <div class="nav">
-      <button class="back" id="back" style="visibility:hidden">Voltar</button>
+      <button class="back" id="back" style="display:none">Voltar</button>
       <button class="next" id="next">Próximo</button>
     </div>
   </div>
@@ -559,11 +601,19 @@ _PAGE = """<!doctype html>
   const sb=$("steps"); for(let i=0;i<TOTAL;i++){const e=document.createElement("i");sb.appendChild(e);}
   function paint(){
     document.querySelectorAll(".step").forEach(s=>s.classList.toggle("on",+s.dataset.step===cur));
-    [...sb.children].forEach((e,i)=>e.classList.toggle("on",i<cur));
-    $("back").style.visibility=cur>1?"visible":"hidden";
+    [...sb.children].forEach((e,i)=>{e.classList.toggle("on",i<cur);e.classList.toggle("cur",i===cur-1);});
+    $("back").style.display=cur>1?"":"none";
     $("next").textContent=cur===TOTAL?"Salvar configuração":"Próximo";
     window.scrollTo(0,0);
   }
+  // preview do nome no painel (parte após o "." ganha o degradê da marca)
+  function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML;}
+  function renderBrand(){
+    const v=$("brand").value||"Vagas";const i=v.indexOf(".");
+    let a=v,b="";if(i>=0){a=v.slice(0,i);b=v.slice(i);}
+    $("pvbrand").innerHTML=esc(a)+(b?'<span class="pvbrand2">'+esc(b)+'</span>':"");
+  }
+  $("brand").addEventListener("input",renderBrand);renderBrand();
   $("back").onclick=()=>{if(cur>1){cur--;paint();}};
   $("next").onclick=()=>{ if(cur<TOTAL){cur++;paint();} else save(); };
 
@@ -604,7 +654,7 @@ _PAGE = """<!doctype html>
     const areas=[...document.querySelectorAll('input[name=area]:checked')].map(c=>c.value);
     const dados={areas:areas,extra:$("extra").value,country:$("country").value,
       state_code:$("state").value,state_other:$("state_other").value,cidade:$("cidade").value,
-      remoto:$("remoto").checked,run_at:$("run_at").value,brand:$("brand").value,
+      remoto:$("remoto").checked,pcd:$("pcd").checked,run_at:$("run_at").value,brand:$("brand").value,
       gemini:$("gemini").value,tg_tok:$("tg_tok").value,tg_chat:$("tg_chat").value,
       github_repo:$("github_repo").value,logadas:$("logadas").checked};
     $("next").disabled=true;$("next").textContent="Salvando...";
