@@ -425,21 +425,35 @@ _CSS = """
     display:inline-flex;align-items:center;gap:8px;transition:transform .35s cubic-bezier(.16,1,.3,1)}
   .livetoast.on{transform:translateX(-50%) translateY(0)}
   .livetoast svg.lucide{width:16px;height:16px}
-  .themepanel{position:fixed;right:14px;top:62px;z-index:60;width:240px;display:none;
-    background:rgba(12,12,15,.97);border:1px solid var(--line);border-radius:16px;padding:14px;
-    box-shadow:0 14px 44px rgba(0,0,0,.55)}
-  .themepanel.on{display:block;animation:paneInR .2s ease}
-  .themepanel h4{font-family:'Syne',sans-serif;font-size:.82rem;margin-bottom:10px;color:#fff}
-  .swatches{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .cfg{display:grid;gap:16px;max-width:760px;margin:0 auto}
+  .cfgsec{position:relative;border-radius:18px;padding:18px 20px;
+    background:radial-gradient(135% 90% at 22% 0%,rgba(255,255,255,.11),rgba(255,255,255,.028) 56%);
+    border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(9px) saturate(1.8);-webkit-backdrop-filter:blur(9px) saturate(1.8);
+    box-shadow:0 8px 30px rgba(0,0,0,.30),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -12px 26px rgba(255,255,255,.03)}
+  .cfgsec h3{font-family:'Syne',sans-serif;font-size:.95rem;color:#fff;display:flex;align-items:center;gap:8px;margin-bottom:6px}
+  .cfgsec h3 svg.lucide{width:17px;height:17px;color:var(--accent)}
+  .cfgmuted{font-size:.78rem;color:var(--muted);margin:2px 0 12px;line-height:1.55}
+  .cfgmuted code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:6px;font-size:.74rem}
+  .cfgrow{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    padding:10px 0;border-top:1px solid rgba(255,255,255,.06);font-size:.84rem;color:var(--muted)}
+  .cfgrow:first-of-type{border-top:0}
+  .cfgrow input[type=color]{width:38px;height:28px;border:1px solid var(--line);border-radius:7px;background:none;cursor:pointer;padding:0}
+  .cfgtag{color:#fff;font-weight:500;text-align:right}
+  .cfgtag a{color:var(--accent);text-decoration:none}
+  .cfgtag a:hover{text-decoration:underline}
+  .cfgbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .cfgbtn{background:var(--card);border:1px solid var(--line);color:#fff;border-radius:10px;
+    padding:9px 14px;cursor:pointer;font-family:inherit;font-size:.8rem;display:inline-flex;align-items:center;gap:7px;
+    transition:border-color .2s,background .2s}
+  .cfgbtn:hover{border-color:var(--accent)}
+  .cfgbtn svg.lucide{width:15px;height:15px}
+  .cfgbtn.ghost{width:100%;justify-content:center;margin-top:10px}
+  .cfgbtn.danger{border-color:rgba(255,80,90,.45);color:#ff6b75}
+  .cfgbtn.danger:hover{background:rgba(255,80,90,.12);border-color:rgba(255,80,90,.7)}
+  .cfgbtn[disabled]{opacity:.45;cursor:not-allowed}
+  .swatches{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 12px}
   .sw{width:30px;height:30px;border-radius:9px;cursor:pointer;border:2px solid transparent;transition:transform .15s}
   .sw:hover{transform:scale(1.1)} .sw.on{border-color:#fff}
-  .trow{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:9px 0;
-    font-size:.82rem;color:var(--muted)}
-  .trow input[type=color]{width:36px;height:28px;border:1px solid var(--line);border-radius:6px;
-    background:none;cursor:pointer;padding:0}
-  .tbtn{width:100%;margin-top:8px;background:var(--card);border:1px solid var(--line);color:#fff;
-    border-radius:10px;padding:9px;cursor:pointer;font-family:inherit;font-size:.8rem}
-  .tbtn:hover{border-color:var(--accent)}
   body.lighttheme .title a,body.lighttheme .grp,body.lighttheme .nota .title{color:#15151a}
   body.lighttheme .resumo,body.lighttheme .notabody{color:#33333a}
   body.lighttheme .notabody{background:rgba(0,0,0,.04)}
@@ -450,6 +464,11 @@ _CSS = """
     box-shadow:0 8px 26px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.85),inset 0 -12px 26px rgba(0,0,0,.02)}
   body.lighttheme .card:hover{border-color:rgba(0,0,0,.16);box-shadow:0 16px 40px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.9)}
   body.lighttheme .glow,body.lighttheme .glow2{opacity:.10}
+  body.lighttheme .cfgsec{border-color:rgba(0,0,0,.08);
+    background:radial-gradient(135% 90% at 22% 0%,rgba(255,255,255,.78),rgba(255,255,255,.45) 56%);
+    box-shadow:0 8px 26px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.85)}
+  body.lighttheme .cfgsec h3,body.lighttheme .cfgtag,body.lighttheme .cfgbtn{color:#15151a}
+  body.lighttheme .cfgmuted code{background:rgba(0,0,0,.06)}
   .repofoot{max-width:1180px;margin:10px auto 40px;padding:0 16px;display:flex;gap:18px;
     flex-wrap:wrap;justify-content:center}
   .repofoot a{color:var(--muted);font-size:.82rem;text-decoration:none;display:inline-flex;
@@ -474,8 +493,8 @@ _JS = """
   const aplBtn=document.getElementById('apltog');
   const favBtn=document.getElementById('favtog');
   const densBtn=document.getElementById('densbtn');
-  const panes={vagas:document.getElementById('tab-vagas'),freelas:document.getElementById('tab-freelas'),cand:document.getElementById('tab-cand'),notas:document.getElementById('tab-notas')};
-  const TABS=['vagas','freelas','cand','notas'];
+  const panes={vagas:document.getElementById('tab-vagas'),freelas:document.getElementById('tab-freelas'),cand:document.getElementById('tab-cand'),notas:document.getElementById('tab-notas'),config:document.getElementById('tab-config')};
+  const TABS=['vagas','freelas','cand','notas','config'];
   const AREAS=['design','social','foto','video','web'];
   let filtro='all', limite=18, modo='normal', cur='vagas';
   const WEBAPP=window.WEBAPP_URL||'';
@@ -576,7 +595,8 @@ _JS = """
   function applyDens(){document.body.classList.toggle('rich',rich);
     document.querySelectorAll('.det').forEach(d=>{d.open=rich;});
     if(densBtn){densBtn.classList.toggle('on',rich);
-      densBtn.querySelector('.dlbl').textContent=rich?'Menos info':'Mais info';}}
+      densBtn.querySelector('.dlbl').textContent=rich?'Menos info':'Mais info';}
+    const db2=document.getElementById('densbtn2');if(db2)db2.textContent=rich?'Menos info':'Mais info';}
   if(densBtn)densBtn.onclick=()=>{rich=!rich;localStorage.setItem('garimpo_dens',rich?'rich':'lean');applyDens();};
   function setTab(name,dir){cur=name;
     tabs.forEach(t=>t.classList.toggle('on',t.dataset.tab===name));
@@ -681,11 +701,8 @@ _JS = """
   function getTheme(){try{return JSON.parse(localStorage.getItem('garimpo_theme'))||{a1:'#ff3366',a2:'#6366f1',light:false};}catch(e){return {a1:'#ff3366',a2:'#6366f1',light:false};}}
   function saveTheme(t){localStorage.setItem('garimpo_theme',JSON.stringify(t));}
   let theme=getTheme();applyTheme(theme);
-  const tpanel=document.getElementById('themepanel'),themebtn=document.getElementById('themebtn');
   const c1=document.getElementById('c1'),c2=document.getElementById('c2'),lightchk=document.getElementById('lightchk');
   if(c1){c1.value=theme.a1;c2.value=theme.a2;lightchk.checked=!!theme.light;}
-  if(themebtn)themebtn.onclick=function(e){e.stopPropagation();tpanel.classList.toggle('on');};
-  document.addEventListener('click',function(e){if(tpanel&&tpanel.classList.contains('on')&&!tpanel.contains(e.target)&&themebtn&&!themebtn.contains(e.target))tpanel.classList.remove('on');});
   const swbox=document.getElementById('swatches');
   if(swbox)TPRE.forEach(function(p){var d=document.createElement('div');d.className='sw';
     d.style.background='linear-gradient(135deg,'+p[0]+','+p[1]+')';
@@ -695,6 +712,31 @@ _JS = """
     lightchk.onchange=function(){theme.light=lightchk.checked;saveTheme(theme);applyTheme(theme);};}
   const treset=document.getElementById('treset');
   if(treset)treset.onclick=function(){theme={a1:'#ff3366',a2:'#6366f1',light:false};saveTheme(theme);applyTheme(theme);if(c1){c1.value=theme.a1;c2.value=theme.a2;lightchk.checked=false;}};
+
+  // ---- página de configurações ----
+  const densBtn2=document.getElementById('densbtn2');
+  if(densBtn2)densBtn2.onclick=()=>{rich=!rich;localStorage.setItem('garimpo_dens',rich?'rich':'lean');applyDens();};
+  const DATAK=['garimpo_arq','garimpo_apl','garimpo_fav','garimpo_notas'];
+  const ALLK=DATAK.concat(['garimpo_theme','garimpo_dens']);
+  const exb=document.getElementById('cfgexport');
+  if(exb)exb.onclick=function(){const o={};ALLK.forEach(k=>{const v=localStorage.getItem(k);if(v!=null)o[k]=v;});
+    const blob=new Blob([JSON.stringify({app:'garimpeiro',data:o},null,2)],{type:'application/json'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='garimpeiro-backup.json';a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);};
+  const imb=document.getElementById('cfgimport'),imf=document.getElementById('cfgfile');
+  if(imb&&imf){imb.onclick=()=>imf.click();
+    imf.onchange=function(){const f=imf.files[0];if(!f)return;const rd=new FileReader();
+      rd.onload=function(){try{const j=JSON.parse(rd.result);const d=(j&&j.data)?j.data:j;
+        Object.keys(d).forEach(k=>{if(ALLK.indexOf(k)>-1&&typeof d[k]==='string')localStorage.setItem(k,d[k]);});
+        location.reload();}catch(e){alert('Arquivo de backup inválido.');}};rd.readAsText(f);};}
+  const clb=document.getElementById('cfgclear');
+  if(clb)clb.onclick=function(){if(confirm('Apagar favoritos, arquivadas, candidaturas e notas deste navegador? As cores/tema serão mantidos.')){DATAK.forEach(k=>localStorage.removeItem(k));location.reload();}};
+  const synEl=document.getElementById('cfgsync');
+  if(synEl)synEl.textContent=WEBAPP?'Ativada':'Não configurada';
+  const synb=document.getElementById('cfgsyncnow');
+  if(synb){if(!WEBAPP){synb.disabled=true;}
+    else synb.onclick=function(){resync();synb.textContent='Sincronizado ✓';if(window.lucide)lucide.createIcons();
+      setTimeout(()=>{synb.innerHTML='<i data-lucide=\\"refresh-cw\\"></i> Sincronizar agora';if(window.lucide)lucide.createIcons();},1800);};}
 
   refresh();
 """
@@ -745,6 +787,64 @@ def gerar_html(
         )
     else:
         report_link = ""
+    bot = (bot_username or "").strip().lstrip("@")
+    tg_row = (
+        f'<div class="cfgrow"><span>Alertas no Telegram</span>'
+        f'<span class="cfgtag"><a href="https://t.me/{html.escape(bot)}" target="_blank" rel="noopener">@{html.escape(bot)}</a></span></div>'
+        if bot else
+        '<div class="cfgrow"><span>Alertas no Telegram</span><span class="cfgtag">—</span></div>'
+    )
+    if repo:
+        repo_rows = (
+            f'<div class="cfgrow"><span>Reportar um problema</span>'
+            f'<span class="cfgtag"><a href="https://github.com/{html.escape(repo)}/issues/new?labels=bug" '
+            f'target="_blank" rel="noopener">{_ic("bug")} Abrir issue</a></span></div>'
+            f'<div class="cfgrow"><span>Código / contribuir</span>'
+            f'<span class="cfgtag"><a href="https://github.com/{html.escape(repo)}" '
+            f'target="_blank" rel="noopener">{_ic("github")} GitHub</a></span></div>'
+        )
+    else:
+        repo_rows = ""
+    cfg_section = f"""
+    <section id="tab-config" class="panel hidden">
+      <div class="cfg">
+        <div class="cfgsec">
+          <h3>{_ic("palette")} Aparência</h3>
+          <div class="swatches" id="swatches"></div>
+          <div class="cfgrow"><span>Cor 1</span><input type="color" id="c1" value="#ff3366"></div>
+          <div class="cfgrow"><span>Cor 2</span><input type="color" id="c2" value="#6366f1"></div>
+          <div class="cfgrow"><span>Tema claro</span><input type="checkbox" id="lightchk"></div>
+          <div class="cfgrow"><span>Densidade dos cards</span><button class="cfgbtn" id="densbtn2">Mais info</button></div>
+          <button class="cfgbtn ghost" id="treset">Restaurar cores padrão</button>
+        </div>
+        <div class="cfgsec">
+          <h3>{_ic("database")} Meus dados (neste aparelho)</h3>
+          <p class="cfgmuted">Favoritos, arquivadas, candidaturas e notas ficam salvos só neste navegador. Faça backup antes de limpar.</p>
+          <div class="cfgbtns">
+            <button class="cfgbtn" id="cfgexport">{_ic("download")} Exportar backup</button>
+            <button class="cfgbtn" id="cfgimport">{_ic("upload")} Importar</button>
+            <button class="cfgbtn danger" id="cfgclear">{_ic("trash-2")} Limpar dados</button>
+          </div>
+          <input type="file" id="cfgfile" accept="application/json" hidden>
+        </div>
+        <div class="cfgsec">
+          <h3>{_ic("refresh-cw")} Sincronização</h3>
+          <p class="cfgmuted">Sincroniza favoritos/arquivadas/candidaturas entre seus aparelhos via Web App.</p>
+          <div class="cfgrow"><span>Status</span><span class="cfgtag" id="cfgsync">—</span></div>
+          <button class="cfgbtn" id="cfgsyncnow">{_ic("refresh-cw")} Sincronizar agora</button>
+        </div>
+        <div class="cfgsec">
+          <h3>{_ic("info")} Sobre</h3>
+          <div class="cfgrow"><span>Painel</span><span class="cfgtag">{html.escape(brand)}</span></div>
+          <div class="cfgrow"><span>Atualizado em</span><span class="cfgtag">{html.escape(gerado_em)}</span></div>
+          <div class="cfgrow"><span>No painel agora</span><span class="cfgtag">{len(vagas)} vagas · {len(freelas)} freelas</span></div>
+          <div class="cfgrow"><span>Fontes monitoradas</span><span class="cfgtag">Gupy · Indeed · LinkedIn · Google · Trampos</span></div>
+          {tg_row}
+          {repo_rows}
+          <p class="cfgmuted">Busca, fontes e horários ficam no <code>config.yaml</code> — ou rode <code>python garimpeiro.py setup</code> para reconfigurar.</p>
+        </div>
+      </div>
+    </section>"""
     doc = f"""<!doctype html>
 <html lang="pt-br"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -781,8 +881,8 @@ document.documentElement.classList.add('prelight');}}}}catch(e){{}}}})();</scrip
       <button class="tab" data-tab="freelas">{_ic("zap")} Freelas <span class="n">{len(freelas)}</span></button>
       <button class="tab" data-tab="cand">{_ic("bookmark")} Candidaturas <span class="n">{len(candidaturas)}</span></button>
       <button class="tab" data-tab="notas">{_ic("notebook-pen")} Notas</button>
+      <button class="tab" data-tab="config">{_ic("settings")} Config</button>
       <button id="densbtn" class="iconbtn">{_ic("layout-list")} <span class="dlbl">Mais info</span></button>
-      <button id="themebtn" class="iconbtn" title="Cores">{_ic("palette")}</button>
       <button id="favtog" class="iconbtn">{_ic("star")} <span class="n">0</span></button>
       <button id="apltog" class="iconbtn">{_ic("circle-check")} <span class="n">0</span></button>
       <button id="arqtog" class="iconbtn">{_ic("archive")} <span class="n">0</span></button>
@@ -795,14 +895,6 @@ document.documentElement.classList.add('prelight');}}}}catch(e){{}}}})();</scrip
       </div>
     </div>
   </header>
-  <div class="themepanel" id="themepanel">
-    <h4>{_ic("palette")} Cores do painel</h4>
-    <div class="swatches" id="swatches"></div>
-    <div class="trow"><span>Cor 1</span><input type="color" id="c1" value="#ff3366"></div>
-    <div class="trow"><span>Cor 2</span><input type="color" id="c2" value="#6366f1"></div>
-    <div class="trow"><span>Tema claro</span><input type="checkbox" id="lightchk"></div>
-    <button class="tbtn" id="treset">Restaurar padrão</button>
-  </div>
   <main>
     <section id="tab-vagas" class="panel">
       {grupos}
@@ -824,6 +916,7 @@ document.documentElement.classList.add('prelight');}}}}catch(e){{}}}})();</scrip
       <div class="notabar"><button id="notrash" class="iconbtn">{_ic("trash-2")} Lixeira <span class="n">0</span></button></div>
       <div id="notaslist" class="grid"></div>
     </section>
+    {cfg_section}
     {plugin_html}
   </main>
   {report_link}
