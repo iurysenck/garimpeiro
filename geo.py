@@ -57,6 +57,27 @@ def states(country_code: str = "BR") -> list[dict]:
         return []
 
 
+def cities(uf: str) -> list[str]:
+    """Municípios de um estado BR (sigla de 2 letras) via API pública do IBGE.
+
+    Chamada read-only, opcional (só preenche um datalist no instalador). Falha
+    silenciosa → cidade vira campo livre. Outros países não têm lista de cidades aqui.
+    """
+    uf = (uf or "").strip().upper()
+    if len(uf) != 2:
+        return []
+    try:
+        import json
+        import urllib.request
+
+        url = f"https://servicodados.ibge.gov.br/api/v1/localidades/estados/{uf}/municipios"
+        with urllib.request.urlopen(url, timeout=8) as r:
+            data = json.load(r)
+        return sorted(m["nome"] for m in data if m.get("nome"))
+    except Exception:  # noqa: BLE001
+        return []
+
+
 def state_variants(country_code: str, code: str) -> list[str]:
     """Variantes p/ casar a vaga: [nome oficial, sigla]. Ex.: ('BR','RJ') ->
     ['Rio de Janeiro', 'RJ']. O matcher normaliza acento/caixa depois."""

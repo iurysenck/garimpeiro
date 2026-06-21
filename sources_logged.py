@@ -7,6 +7,7 @@ Sessão expira: rode login_nodriver.py de novo quando o token não vier.
 from __future__ import annotations
 
 import asyncio
+import os
 from pathlib import Path
 
 import nodriver as uc
@@ -14,6 +15,11 @@ import requests
 from nodriver import cdp
 
 from sources import Job
+
+# "Rodar escondido": GARIMPO_HEADLESS=true no .env faz o Chrome rodar headless
+# (sem janela, sem roubar foco). Padrão é janela off-screen (mais compatível;
+# alguns sites detectam headless). Públicas (Gupy/JobSpy/Trampos) nunca abrem navegador.
+_HEADLESS = os.environ.get("GARIMPO_HEADLESS", "").strip().lower() in ("1", "true", "yes", "on")
 
 PROFILE = Path(__file__).resolve().parent / ".nddata"
 RECO_PAGE = "https://www.vagas.com.br/meu-perfil/vagas-recomendadas"
@@ -24,7 +30,7 @@ _UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/124.0 Safari/537.36"
 async def _capturar_token() -> tuple[str, str]:
     browser = await uc.start(
         user_data_dir=str(PROFILE),
-        headless=False,
+        headless=_HEADLESS,
         browser_args=["--window-position=-2400,-2400", "--window-size=1200,860"],
     )
     auth: dict = {}
@@ -64,7 +70,7 @@ WORKANA_API = "https://www.workana.com/jobs?language=pt&category={cat}&page={pag
 async def _workana_projetos(cats: list[str], max_pages: int) -> list[dict]:
     browser = await uc.start(
         user_data_dir=str(PROFILE),
-        headless=False,
+        headless=_HEADLESS,
         browser_args=["--window-position=-2400,-2400", "--window-size=1200,860"],
     )
     tab = await browser.get(WORKANA_PAGE)
@@ -163,7 +169,7 @@ _NF_JS = r"""(() => {
 async def _nf_projetos(max_pages: int) -> list[dict]:
     browser = await uc.start(
         user_data_dir=str(PROFILE),
-        headless=False,
+        headless=_HEADLESS,
         browser_args=["--window-position=-2400,-2400", "--window-size=1200,860"],
     )
     out: list[dict] = []
@@ -232,7 +238,7 @@ CATHO_APPLIES = "https://seguro.catho.com.br/area-candidato/api/applies-data/"
 async def _catho_applies_text() -> str:
     browser = await uc.start(
         user_data_dir=str(PROFILE),
-        headless=False,
+        headless=_HEADLESS,
         browser_args=["--window-position=-2400,-2400", "--window-size=1200,860"],
     )
     tab = await browser.get(CATHO_AREA)
@@ -394,7 +400,7 @@ async def _jobbol_cards(slugs: list[str], max_pages: int) -> list[dict]:
     import json
     browser = await uc.start(
         user_data_dir=str(PROFILE),
-        headless=False,
+        headless=_HEADLESS,
         browser_args=["--window-position=-2400,-2400", "--window-size=1200,860"],
     )
     out: list[dict] = []

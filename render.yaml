@@ -1,0 +1,21 @@
+# Blueprint do Render — roda o Garimpeiro como worker contínuo.
+# Atenção: a camada gratuita do Render tem limites de horas/créditos e pode
+# hibernar. Pra uso contínuo grátis, prefira GitHub Actions + Cloudflare Pages
+# (veja DEPLOY.md). Configure as chaves como variáveis de ambiente no painel do
+# Render (NUNCA no repositório).
+services:
+  - type: worker
+    name: garimpeiro
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python garimpeiro.py schedule
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_CHAT_ID
+        sync: false
+      - key: GARIMPO_HEADLESS
+        value: "true"

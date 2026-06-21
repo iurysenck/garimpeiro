@@ -105,6 +105,7 @@ def _prefill() -> dict:
         "pcd": not bool(cfg.get("exclude_pcd", True)),
         "brand": cfg.get("brand", "Vagas"),
         "logadas": bool(src.get("vagas_logado") or src.get("catho_logado") or src.get("jobbol")),
+        "headless": env.get("GARIMPO_HEADLESS", "").strip().lower() in ("1", "true", "yes", "on"),
         "github_repo": cfg.get("github_repo") or DEFAULT_REPO,
         "run_at": cfg.get("run_at", "08:00,20:00"),
         "ai_provider": (cfg.get("ai_provider") or "gemini").lower(),
@@ -151,6 +152,8 @@ def _salvar(dados: dict) -> dict:
     ai_model = (dados.get("ai_model") or "").strip()
     ollama_host = (dados.get("ollama_host") or "http://localhost:11434").strip()
 
+    headless = bool(dados.get("headless", False))
+
     gem = (dados.get("gemini") or "").strip()
     openai_key = (dados.get("openai_key") or "").strip()
     anthropic_key = (dados.get("anthropic_key") or "").strip()
@@ -162,7 +165,8 @@ def _salvar(dados: dict) -> dict:
         f"OPENAI_API_KEY={openai_key}\n"
         f"ANTHROPIC_API_KEY={anthropic_key}\n"
         f"TELEGRAM_BOT_TOKEN={tg_tok}\n"
-        f"TELEGRAM_CHAT_ID={tg_chat}\n",
+        f"TELEGRAM_CHAT_ID={tg_chat}\n"
+        f"GARIMPO_HEADLESS={'true' if headless else 'false'}\n",
         encoding="utf-8",
     )
     if not g.PERFIL.exists():
@@ -284,6 +288,7 @@ def build_page(token: str) -> str:
         .replace("__REMOTO__", " checked" if pf["remoto"] else "")
         .replace("__PCD__", " checked" if pf["pcd"] else "")
         .replace("__LOGADAS__", " checked" if pf["logadas"] else "")
+        .replace("__HEADLESS__", " checked" if pf["headless"] else "")
     )
 
 
@@ -303,6 +308,11 @@ def _make_handler(httpd_ref: dict):
                 q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
                 cc = (q.get("country", ["BR"])[0] or "BR").upper()
                 self._json({"states": geo.states(cc)}, 200)
+                return
+            if path == "/cities":  # municípios do IBGE p/ o datalist (read-only)
+                q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+                uf = (q.get("uf", [""])[0] or "").upper()
+                self._json({"cities": geo.cities(uf)}, 200)
                 return
             if path not in ("/", "/index.html"):
                 self.send_error(404)
@@ -527,7 +537,8 @@ _PAGE = """<!doctype html>
         <label class="field" id="otherwrap" style="display:none;margin-top:10px"><span>Qual estado/região? (digite)</span>
           <input type="text" id="state_other" placeholder="ex: Lisboa, Buenos Aires..."></label>
         <label class="field" style="margin-top:10px"><span>Cidade-base</span>
-          <input type="text" id="cidade" value="__CIDADE__" placeholder="ex: Rio de Janeiro"></label>
+          <input type="text" id="cidade" value="__CIDADE__" list="cidlist" placeholder="ex: Rio de Janeiro"></label>
+        <datalist id="cidlist"></datalist>
         <label class="toggle"><input type="checkbox" id="remoto"__REMOTO__> Incluir vagas remotas</label>
       </div>
 
@@ -620,6 +631,8 @@ _PAGE = """<!doctype html>
         <label class="toggle"><input type="checkbox" id="logadas"__LOGADAS__> Ativar fontes LOGADAS (Vagas.com/Catho/Workana/99freelas + Jobbol)</label>
         <p class="why" style="margin-top:10px;border-color:var(--line)">Públicas (Gupy, Indeed/LinkedIn/Google, Trampos) já vêm ligadas, sem login. As logadas exigem Chrome + login manual e quebram mais fácil.</p>
         <div class="sec"><span>🔒</span><div><b>Fontes logadas:</b> usam seu login real num navegador na <b>sua</b> máquina (<code>login_nodriver.py</code>). A senha não é enviada a lugar nenhum.</div></div>
+        <label class="toggle"><input type="checkbox" id="headless"__HEADLESS__> Rodar escondido (sem janelas roubando o foco)</label>
+        <p class="why" style="margin-top:10px;border-color:var(--line)">As fontes públicas <b>nunca</b> abrem janela. As logadas abrem um Chrome (já fora da tela). Com isto ligado, ele roda <b>headless</b> (invisível) — mais discreto, mas alguns sites podem detectar. Deixe desligado se as logadas pararem de funcionar.</p>
         <label class="field" style="margin-top:14px"><span>Repositório p/ "Reportar problema" (usuario/repo)</span>
           <input type="text" id="github_repo" value="__GITHUB__"></label>
         <p class="why" style="margin-top:8px;border-color:var(--line)">Já aponta pro projeto oficial. Trocou pro seu fork? Edite aqui (ou depois no <code>config.yaml</code>).</p>
@@ -670,7 +683,18 @@ _PAGE = """<!doctype html>
       sel.onchange();
     }catch(e){}
   };
-  $("state").onchange=function(){$("otherwrap").style.display=$("state").value==="__OUTRO__"?"block":"none";};
+  async function carregarCidades(){
+    const uf=$("state").value;const dl=$("cidlist");
+    if($("country").value!=="BR"||uf==="__OUTRO__"){dl.innerHTML="";return;}
+    try{
+      const r=await fetch("/cities?uf="+encodeURIComponent(uf));const j=await r.json();
+      dl.innerHTML=(j.cities||[]).map(c=>'<option value="'+esc(c)+'">').join("");
+    }catch(e){dl.innerHTML="";}
+  }
+  $("state").onchange=function(){
+    $("otherwrap").style.display=$("state").value==="__OUTRO__"?"block":"none";
+    carregarCidades();
+  };
   $("state").onchange();
 
   // preview fiel do nome
@@ -710,7 +734,7 @@ _PAGE = """<!doctype html>
       ai_provider:$("ai_provider").value,ai_model:$("ai_model").value,ollama_host:$("ollama_host").value,
       gemini:$("gemini").value,openai_key:$("openai_key").value,anthropic_key:$("anthropic_key").value,
       tg_tok:$("tg_tok").value,tg_chat:$("tg_chat").value,
-      github_repo:$("github_repo").value,logadas:$("logadas").checked};
+      github_repo:$("github_repo").value,logadas:$("logadas").checked,headless:$("headless").checked};
     $("right").disabled=true;$("left").disabled=true;
     try{
       const r=await fetch("/save",{method:"POST",headers:{"Content-Type":"application/json","X-Setup-Token":TOKEN},body:JSON.stringify(dados)});
