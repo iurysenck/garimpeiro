@@ -2,7 +2,8 @@
 """Garimpeiro de Vagas — CLI.
 
 Comandos:
-  python garimpeiro.py setup      # assistente: escolhe áreas, fontes, modo, chaves
+  python garimpeiro.py setup        # assistente no terminal (funciona via SSH/sem tela)
+  python garimpeiro.py setup --web  # mesmo assistente, porém visual no navegador (local)
   python garimpeiro.py once       # roda uma coleta agora
   python garimpeiro.py serve      # serve o painel em http://localhost:8765
   python garimpeiro.py schedule   # roda nos horários do config + serve o painel
@@ -145,7 +146,10 @@ def _yaml_list(items: list[str]) -> str:
     return "\n".join(f'  - "{i}"' for i in items)
 
 
-def escrever_config(bloco, cidade, estado, remoto, logadas, tem_tg, brand="Vagas") -> None:
+def escrever_config(
+    bloco, cidade, estado, remoto, logadas, tem_tg, brand="Vagas",
+    github_repo="", run_at="08:00,20:00",
+) -> None:
     on = "true" if logadas else "false"
     cfg = f"""# Gerado por: python garimpeiro.py setup  (edite à vontade)
 
@@ -212,10 +216,10 @@ sync_token: ""
 painel_url: ""
 
 # Repo GitHub (usuario/repo) p/ "Reportar problema" no painel/Telegram. Vazio = sem link.
-github_repo: ""
+github_repo: "{github_repo}"
 
 # Horários do 'schedule' (HH:MM, vírgula). Padrão 2x/dia.
-run_at: "08:00,20:00"
+run_at: "{run_at}"
 
 output:
   html: true
@@ -342,6 +346,14 @@ def cmd_shortcut(port: int = 8765) -> int:
 def main_cli() -> int:
     cmd = sys.argv[1] if len(sys.argv) > 1 else "help"
     if cmd == "setup":
+        if "--web" in sys.argv[2:]:
+            try:
+                import setup_web
+            except Exception as exc:  # noqa: BLE001
+                print(f"Nao consegui carregar o instalador web ({exc}). Usando o terminal.")
+                cmd_setup()
+                return 0
+            return setup_web.run()
         cmd_setup()
         return 0
     if cmd == "once":

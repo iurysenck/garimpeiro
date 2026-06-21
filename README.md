@@ -16,8 +16,13 @@ git clone <este-repo> garimpeiro && cd garimpeiro
 python -m venv .venv && . .venv/bin/activate    # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-python garimpeiro.py setup     # assistente: escolhe áreas, fontes, modo, chaves
+python garimpeiro.py setup        # assistente no terminal (funciona via SSH/sem tela)
+python garimpeiro.py setup --web  # mesmo assistente, visual no navegador (só local, 127.0.0.1)
 ```
+
+> `--web` abre uma página local (estilo do painel) pra preencher tudo no clique e
+> salvar `config.yaml`/`.env`. Roda em qualquer OS com navegador; em servidores sem
+> tela (Oracle/RPi/Docker/CI), use a versão de terminal — mesmas perguntas, mesmo resultado.
 
 O assistente pergunta:
 - **Quais áreas** garimpar (design, social, audiovisual, dev, marketing, dados… — escolha 1+)
