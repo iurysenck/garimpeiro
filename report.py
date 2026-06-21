@@ -276,12 +276,17 @@ _CSS = """
     -webkit-font-smoothing:antialiased;overflow-x:hidden}
   body.swiping{user-select:none;-webkit-user-select:none;cursor:grabbing}
   svg.lucide{width:1.05em;height:1.05em;vertical-align:-.18em;stroke-width:2;flex:0 0 auto}
-  .glow{position:fixed;top:-30%;right:-20%;width:600px;height:600px;border-radius:50%;
-    background:var(--accent);filter:blur(160px);opacity:.10;pointer-events:none;z-index:0}
-  .glow2{position:fixed;bottom:-30%;left:-20%;width:600px;height:600px;border-radius:50%;
-    background:var(--accent2);filter:blur(160px);opacity:.10;pointer-events:none;z-index:0}
-  .topbar{position:sticky;top:0;z-index:10;background:rgba(5,5,5,.86);backdrop-filter:blur(14px);
-    border-bottom:1px solid var(--line);padding:14px 16px 0}
+  .glow{position:fixed;top:-22%;right:-10%;width:560px;height:560px;border-radius:50%;
+    background:var(--accent);filter:blur(110px);opacity:.18;pointer-events:none;z-index:0}
+  .glow2{position:fixed;bottom:-24%;left:-10%;width:560px;height:560px;border-radius:50%;
+    background:var(--accent2);filter:blur(110px);opacity:.18;pointer-events:none;z-index:0}
+  .glow3{position:fixed;top:38%;left:44%;width:440px;height:440px;border-radius:50%;
+    background:var(--accent);filter:blur(120px);opacity:.09;pointer-events:none;z-index:0}
+  .topbar{position:sticky;top:0;z-index:10;background:rgba(8,8,11,.55);
+    backdrop-filter:blur(22px) saturate(1.9);
+    -webkit-backdrop-filter:blur(22px) saturate(1.9);
+    border-bottom:1px solid rgba(255,255,255,.10);padding:14px 16px 0;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 8px 30px rgba(0,0,0,.28)}
   .bar1,.tabs{transition:max-height .32s ease,opacity .25s ease,margin .3s ease;overflow:hidden}
   .bar1{display:flex;align-items:baseline;justify-content:space-between;gap:12px;max-width:1180px;
     margin:0 auto;max-height:48px;opacity:1}
@@ -330,9 +335,16 @@ _CSS = """
   @media(min-width:640px){.grid{grid-template-columns:repeat(2,1fr)}}
   @media(min-width:1024px){.grid{grid-template-columns:repeat(3,1fr)}}
   .panel.hidden{display:none}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px 18px;
-    display:flex;flex-direction:column;gap:8px;transition:border-color .3s,transform .3s,opacity .3s}
-  .card:hover{border-color:rgba(255,51,102,.4);transform:translateY(-2px)}
+  .card{position:relative;border-radius:18px;padding:16px 18px;
+    display:flex;flex-direction:column;gap:8px;
+    background:radial-gradient(135% 90% at 22% 0%,rgba(255,255,255,.11),rgba(255,255,255,.028) 56%);
+    border:1px solid rgba(255,255,255,.12);
+    backdrop-filter:blur(9px) saturate(1.8);
+    -webkit-backdrop-filter:blur(9px) saturate(1.8);
+    box-shadow:0 8px 30px rgba(0,0,0,.30),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -12px 26px rgba(255,255,255,.03);
+    transition:transform .35s cubic-bezier(.16,1,.3,1),box-shadow .35s,border-color .35s,opacity .3s}
+  .card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.24);
+    box-shadow:0 16px 44px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.32),inset 0 -12px 26px rgba(255,255,255,.05)}
   .card.feita{opacity:.5}
   .card-head{display:flex;align-items:center;gap:11px}
   .badge{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;min-width:40px;height:40px;
@@ -431,8 +443,13 @@ _CSS = """
   body.lighttheme .title a,body.lighttheme .grp,body.lighttheme .nota .title{color:#15151a}
   body.lighttheme .resumo,body.lighttheme .notabody{color:#33333a}
   body.lighttheme .notabody{background:rgba(0,0,0,.04)}
-  body.lighttheme .topbar{background:rgba(246,246,248,.88)}
-  body.lighttheme .glow,body.lighttheme .glow2{opacity:.06}
+  body.lighttheme .topbar{background:rgba(248,248,250,.55);border-bottom-color:rgba(0,0,0,.08);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 8px 30px rgba(0,0,0,.08)}
+  body.lighttheme .card{border-color:rgba(0,0,0,.08);
+    background:radial-gradient(135% 90% at 22% 0%,rgba(255,255,255,.75),rgba(255,255,255,.42) 56%);
+    box-shadow:0 8px 26px rgba(0,0,0,.10),inset 0 1px 0 rgba(255,255,255,.85),inset 0 -12px 26px rgba(0,0,0,.02)}
+  body.lighttheme .card:hover{border-color:rgba(0,0,0,.16);box-shadow:0 16px 40px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.9)}
+  body.lighttheme .glow,body.lighttheme .glow2{opacity:.10}
   .repofoot{max-width:1180px;margin:10px auto 40px;padding:0 16px;display:flex;gap:18px;
     flex-wrap:wrap;justify-content:center}
   .repofoot a{color:var(--muted);font-size:.82rem;text-decoration:none;display:inline-flex;
@@ -753,7 +770,7 @@ r.setProperty('--card','rgba(0,0,0,.03)');r.setProperty('--line','rgba(0,0,0,.10
 document.documentElement.classList.add('prelight');}}}}catch(e){{}}}})();</script>
 </head>
 <body>
-  <div class="glow"></div><div class="glow2"></div>
+  <div class="glow"></div><div class="glow2"></div><div class="glow3"></div>
   <header class="topbar">
     <div class="bar1">
       <div class="brand">{_brand_html(brand)}</div>
