@@ -454,6 +454,9 @@ _CSS = """
   .swatches{display:flex;gap:8px;flex-wrap:wrap;margin:4px 0 12px}
   .sw{width:30px;height:30px;border-radius:9px;cursor:pointer;border:2px solid transparent;transition:transform .15s}
   .sw:hover{transform:scale(1.1)} .sw.on{border-color:#fff}
+  .cfgico{opacity:.5;padding:6px;color:var(--muted)}
+  .cfgico:hover{opacity:1} .cfgico.on{opacity:1;color:var(--accent)}
+  .cfgico svg.lucide{width:17px;height:17px}
   body.lighttheme .title a,body.lighttheme .grp,body.lighttheme .nota .title{color:#15151a}
   body.lighttheme .resumo,body.lighttheme .notabody{color:#33333a}
   body.lighttheme .notabody{background:rgba(0,0,0,.04)}
@@ -598,8 +601,11 @@ _JS = """
       densBtn.querySelector('.dlbl').textContent=rich?'Menos info':'Mais info';}
     const db2=document.getElementById('densbtn2');if(db2)db2.textContent=rich?'Menos info':'Mais info';}
   if(densBtn)densBtn.onclick=()=>{rich=!rich;localStorage.setItem('garimpo_dens',rich?'rich':'lean');applyDens();};
+  const cfgBtn=document.getElementById('cfgbtn');
+  if(cfgBtn)cfgBtn.onclick=()=>setTab('config',0);
   function setTab(name,dir){cur=name;
     tabs.forEach(t=>t.classList.toggle('on',t.dataset.tab===name));
+    if(cfgBtn)cfgBtn.classList.toggle('on',name==='config');
     for(const k in panes){if(panes[k])panes[k].classList.toggle('hidden',k!==name);}
     filterbar.style.display=name==='vagas'?'':'none';
     const p=panes[name];if(p){const a=dir<0?'paneInL':'paneInR';p.style.animation='none';void p.offsetWidth;p.style.animation=a+' .28s ease';}}
@@ -673,6 +679,15 @@ _JS = """
       t.onclick=function(){location.reload();};document.body.appendChild(t);
       if(window.lucide)lucide.createIcons();}
     t.classList.add('on');
+    notificar('Vagas novas no painel','Toque para abrir as vagas garimpadas.');
+  }
+  function notificar(titulo,corpo){
+    try{
+      if(localStorage.getItem('garimpo_notif')!=='1')return;
+      if(!('Notification'in window)||Notification.permission!=='granted')return;
+      var n=new Notification(titulo,{body:corpo,icon:'icon.png',tag:'garimpo-vagas'});
+      n.onclick=function(){window.focus();location.reload();n.close();};
+    }catch(e){}
   }
   async function checaVersao(){
     try{const r=await fetch('version.json?t='+Date.now(),{cache:'no-store'});
@@ -731,6 +746,22 @@ _JS = """
         location.reload();}catch(e){alert('Arquivo de backup inválido.');}};rd.readAsText(f);};}
   const clb=document.getElementById('cfgclear');
   if(clb)clb.onclick=function(){if(confirm('Apagar favoritos, arquivadas, candidaturas e notas deste navegador? As cores/tema serão mantidos.')){DATAK.forEach(k=>localStorage.removeItem(k));location.reload();}};
+  const notifBtn=document.getElementById('notifbtn');
+  function paintNotif(){if(!notifBtn)return;
+    const on=localStorage.getItem('garimpo_notif')==='1'&&('Notification'in window)&&Notification.permission==='granted';
+    notifBtn.innerHTML='<i data-lucide="bell"></i> '+(on?'Ativadas':'Ativar');notifBtn.classList.toggle('on',on);
+    if(window.lucide)lucide.createIcons();}
+  if(notifBtn){
+    if(!('Notification'in window)){notifBtn.disabled=true;notifBtn.textContent='Sem suporte';}
+    else notifBtn.onclick=function(){
+      if(localStorage.getItem('garimpo_notif')==='1'){localStorage.setItem('garimpo_notif','0');paintNotif();return;}
+      Notification.requestPermission().then(function(p){
+        localStorage.setItem('garimpo_notif',p==='granted'?'1':'0');paintNotif();
+        if(p==='granted')notificar('Notificações ligadas','Você será avisado quando houver vagas novas.');
+      });
+    };
+    paintNotif();
+  }
   const synEl=document.getElementById('cfgsync');
   if(synEl)synEl.textContent=WEBAPP?'Ativada':'Não configurada';
   const synb=document.getElementById('cfgsyncnow');
@@ -831,6 +862,7 @@ def gerar_html(
           <h3>{_ic("refresh-cw")} Sincronização</h3>
           <p class="cfgmuted">Sincroniza favoritos/arquivadas/candidaturas entre seus aparelhos via Web App.</p>
           <div class="cfgrow"><span>Status</span><span class="cfgtag" id="cfgsync">—</span></div>
+          <div class="cfgrow"><span>Notificações do navegador</span><button class="cfgbtn" id="notifbtn">{_ic("bell")} Ativar</button></div>
           <button class="cfgbtn" id="cfgsyncnow">{_ic("refresh-cw")} Sincronizar agora</button>
         </div>
         <div class="cfgsec">
@@ -881,11 +913,11 @@ document.documentElement.classList.add('prelight');}}}}catch(e){{}}}})();</scrip
       <button class="tab" data-tab="freelas">{_ic("zap")} Freelas <span class="n">{len(freelas)}</span></button>
       <button class="tab" data-tab="cand">{_ic("bookmark")} Candidaturas <span class="n">{len(candidaturas)}</span></button>
       <button class="tab" data-tab="notas">{_ic("notebook-pen")} Notas</button>
-      <button class="tab" data-tab="config">{_ic("settings")} Config</button>
       <button id="densbtn" class="iconbtn">{_ic("layout-list")} <span class="dlbl">Mais info</span></button>
       <button id="favtog" class="iconbtn">{_ic("star")} <span class="n">0</span></button>
       <button id="apltog" class="iconbtn">{_ic("circle-check")} <span class="n">0</span></button>
       <button id="arqtog" class="iconbtn">{_ic("archive")} <span class="n">0</span></button>
+      <button id="cfgbtn" class="iconbtn cfgico" title="Configurações" aria-label="Configurações">{_ic("settings")}</button>
     </nav>
     <div class="filters" id="filterbar">
       <div class="frow" id="frow">

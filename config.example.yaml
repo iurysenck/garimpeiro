@@ -28,6 +28,12 @@ exclude_title_keywords:      # exclui pelo título
 max_per_term: 15
 hours_old: 96                # só vagas das últimas N horas (0 = sem limite)
 
+# IA que dá a nota. Provider: gemini (grátis) | openai | anthropic | ollama (local).
+# Chaves no .env. ai_model vazio = padrão do provedor. Crie um prompt.md p/ trocar o prompt.
+ai_provider: "gemini"
+ai_model: ""
+ollama_host: "http://localhost:11434"
+ai_daily_warn: 1400          # avisa no log perto deste nº de chamadas de IA por dia
 gemini_model: "gemini-3.1-flash-lite"
 gemini_batch_size: 8
 
