@@ -4,6 +4,7 @@
 Comandos:
   python garimpeiro.py setup        # assistente no terminal (funciona via SSH/sem tela)
   python garimpeiro.py setup --web  # mesmo assistente, porém visual no navegador (local)
+  python garimpeiro.py perfil       # editor guiado do seu perfil.md (melhora a nota da IA)
   python garimpeiro.py once       # roda uma coleta agora
   python garimpeiro.py serve      # serve o painel em http://localhost:8765
   python garimpeiro.py schedule   # roda nos horários do config + serve o painel
@@ -149,7 +150,7 @@ def _yaml_list(items: list[str]) -> str:
 def escrever_config(
     bloco, cidade, estado, remoto, logadas, tem_tg, brand="Vagas",
     github_repo="", run_at="08:00,20:00", estados=None, exclude_pcd=True,
-    ai_provider="gemini", ai_model="",
+    ai_provider="gemini", ai_model="", ollama_host="http://localhost:11434",
 ) -> None:
     # estados aceitos: lista (nome + sigla) ou, no fallback do CLI, só o texto.
     lista_estados = [s for s in (estados or [estado]) if str(s).strip()]
@@ -184,6 +185,7 @@ hours_old: 96
 # Chaves no .env. ai_model vazio = padrão de cada provider. Edite prompt.md p/ mudar o prompt.
 ai_provider: "{ai_provider}"
 ai_model: "{ai_model}"
+ollama_host: "{ollama_host}"
 ai_daily_warn: 1400
 gemini_model: "gemini-3.1-flash-lite"
 gemini_batch_size: 8
@@ -366,6 +368,13 @@ def main_cli() -> int:
             return setup_web.run()
         cmd_setup()
         return 0
+    if cmd == "perfil":
+        try:
+            import perfil_web
+        except Exception as exc:  # noqa: BLE001
+            print(f"Editor web indisponivel ({exc}). Edite perfil.md no seu editor.")
+            return 1
+        return perfil_web.run()
     if cmd == "once":
         return cmd_once()
     if cmd == "serve":
