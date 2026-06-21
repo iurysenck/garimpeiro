@@ -121,6 +121,132 @@ PRESETS: dict[str, dict] = {
         "trampos_categories": ["negocios"],
         "jobbol_cargos": ["assistente-administrativo", "vendas", "atendimento"],
     },
+    "arquitetura": {
+        "label": "Arquitetura / Interiores / Urbanismo",
+        "search_terms": [
+            "arquiteto", "arquitetura", "design de interiores", "urbanismo",
+            "projetista", "revit", "autocad", "paisagismo",
+        ],
+        "trampos_categories": ["design", "criacao"],
+        "jobbol_cargos": ["arquiteto", "projetista"],
+    },
+    "moda": {
+        "label": "Moda / Estilismo / Têxtil",
+        "search_terms": [
+            "estilista", "designer de moda", "modelagem", "produção de moda",
+            "consultor de moda", "têxtil", "vitrinismo",
+        ],
+        "trampos_categories": ["design", "criacao"],
+        "jobbol_cargos": ["estilista", "designer-de-moda"],
+    },
+    "musica-audio": {
+        "label": "Música / Produção de áudio / Sound design",
+        "search_terms": [
+            "produtor musical", "editor de áudio", "sound design", "mixagem",
+            "engenheiro de som", "técnico de áudio", "podcast",
+        ],
+        "trampos_categories": ["producao", "rtv"],
+        "jobbol_cargos": ["editor-de-audio", "produtor-musical"],
+    },
+    "games": {
+        "label": "Games / Game design / Pixel art",
+        "search_terms": [
+            "game designer", "desenvolvedor de jogos", "unity", "unreal",
+            "level designer", "pixel art", "narrative designer",
+        ],
+        "trampos_categories": ["design", "ti"],
+        "jobbol_cargos": ["game-designer", "desenvolvedor-de-jogos"],
+    },
+    "engenharia": {
+        "label": "Engenharia (civil / produção / mecânica)",
+        "search_terms": [
+            "engenheiro", "engenharia civil", "engenharia de produção",
+            "engenheiro mecânico", "engenheiro eletricista", "planejamento",
+        ],
+        "trampos_categories": ["ti"],
+        "jobbol_cargos": ["engenheiro", "engenheiro-civil"],
+    },
+    "financeiro": {
+        "label": "Financeiro / Contábil / Controladoria",
+        "search_terms": [
+            "analista financeiro", "contador", "controladoria", "contas a pagar",
+            "contas a receber", "tesouraria", "fiscal",
+        ],
+        "trampos_categories": ["negocios"],
+        "jobbol_cargos": ["analista-financeiro", "contador"],
+    },
+    "rh": {
+        "label": "RH / Recrutamento / Departamento pessoal",
+        "search_terms": [
+            "recursos humanos", "recrutamento e seleção", "analista de rh",
+            "departamento pessoal", "business partner", "tech recruiter",
+        ],
+        "trampos_categories": ["negocios"],
+        "jobbol_cargos": ["analista-de-rh", "recrutador"],
+    },
+    "juridico": {
+        "label": "Jurídico / Advocacia / Paralegal",
+        "search_terms": [
+            "advogado", "assistente jurídico", "paralegal", "analista jurídico",
+            "estágio em direito", "contratos",
+        ],
+        "trampos_categories": ["negocios"],
+        "jobbol_cargos": ["advogado", "assistente-juridico"],
+    },
+    "saude": {
+        "label": "Saúde / Enfermagem / Cuidados",
+        "search_terms": [
+            "enfermeiro", "técnico de enfermagem", "cuidador", "fisioterapeuta",
+            "nutricionista", "psicólogo", "recepcionista de clínica",
+        ],
+        "trampos_categories": ["negocios"],
+        "jobbol_cargos": ["enfermeiro", "tecnico-de-enfermagem"],
+    },
+    "educacao": {
+        "label": "Educação / Professor / Tutoria",
+        "search_terms": [
+            "professor", "tutor", "instrutor", "coordenador pedagógico",
+            "monitor", "designer instrucional", "ead",
+        ],
+        "trampos_categories": ["criacao"],
+        "jobbol_cargos": ["professor", "instrutor"],
+    },
+    "logistica": {
+        "label": "Logística / Estoque / Operações",
+        "search_terms": [
+            "logística", "estoquista", "almoxarife", "supply chain",
+            "expedição", "operador de logística", "analista de operações",
+        ],
+        "trampos_categories": ["negocios"],
+        "jobbol_cargos": ["logistica", "estoquista"],
+    },
+    "traducao": {
+        "label": "Tradução / Idiomas / Revisão",
+        "search_terms": [
+            "tradutor", "revisor de texto", "legendagem", "intérprete",
+            "localização", "transcrição",
+        ],
+        "trampos_categories": ["criacao", "marketing"],
+        "jobbol_cargos": ["tradutor", "revisor"],
+    },
+    "eventos": {
+        "label": "Produção de eventos / Cenografia",
+        "search_terms": [
+            "produtor de eventos", "cenógrafo", "assistente de produção",
+            "coordenador de eventos", "montagem de eventos", "produção cultural",
+        ],
+        "trampos_categories": ["producao", "rtv"],
+        "jobbol_cargos": ["produtor-de-eventos", "cenografo"],
+    },
+    "secretariado": {
+        "label": "Secretariado / Assistente executivo",
+        "search_terms": [
+            "secretária", "assistente executivo", "assistente pessoal",
+            "recepcionista", "auxiliar de escritório", "office manager",
+        ],
+        "trampos_categories": ["negocios"],
+        "jobbol_cargos": ["secretaria", "assistente-executivo"],
+    },
 }
 
 
