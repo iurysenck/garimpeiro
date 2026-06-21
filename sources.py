@@ -256,11 +256,25 @@ def fetch_trampos(categorias: list[str], max_pages: int, log) -> list[Job]:
 
 
 def in_scope(job: Job, accepted_states: list[str], include_remote: bool) -> bool:
-    """Filtra por escopo: estados aceitos + remoto."""
-    loc = (job.location or "").lower()
+    """Filtra por escopo: estados aceitos + remoto.
+
+    Casa nome completo OU sigla, ignorando acento/caixa. Siglas (<=3 letras)
+    casam por palavra inteira pra não dar falso-positivo (ex.: 'sp' dentro de
+    'espirito'). Ex.: aceitar 'São Paulo' casa 'sao paulo sp', 'São Paulo/SP'.
+    """
+    loc = normalizar(job.location or "")  # minúsculo, sem acento, alfanumérico
     if include_remote and (job.remote or "remot" in loc or "home office" in loc):
         return True
-    return any(state.lower() in loc for state in accepted_states)
+    for state in accepted_states:
+        n = normalizar(state)
+        if not n:
+            continue
+        if len(n) <= 3:
+            if re.search(rf"\b{re.escape(n)}\b", loc):
+                return True
+        elif n in loc:
+            return True
+    return False
 
 
 # PCD no título = vaga reservada a PcD. Exclusividade na descrição idem.

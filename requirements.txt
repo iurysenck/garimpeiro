@@ -5,3 +5,4 @@ google-genai>=0.3          # matching semântico (Gemini)
 PyYAML>=6.0                # config.yaml
 python-dotenv>=1.0         # carrega .env (chaves)
 nodriver>=0.38             # scraping logado undetected (Vagas.com via API + token)
+pycountry>=23.12           # opcional: países + estados internacionais no setup --web (BR já é embutido)
